@@ -22,7 +22,7 @@ public class DeleteContactServiceTests
     [Test]
     public async Task DeleteAsync_WithPendingContact_Succeeds()
     {
-        var contact = ContactWithStatus(ContactStatus.Pending);
+        var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
         await _repository.SaveAsync(contact);
 
         var result = await _service.DeleteAsync(contact.Id, _actorId);
@@ -34,7 +34,8 @@ public class DeleteContactServiceTests
     [Test]
     public async Task DeleteAsync_WithActiveContact_Succeeds()
     {
-        var contact = ContactWithStatus(ContactStatus.Active);
+        var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
+        contact.Activate();
         await _repository.SaveAsync(contact);
 
         var result = await _service.DeleteAsync(contact.Id, _actorId);
@@ -46,15 +47,11 @@ public class DeleteContactServiceTests
     [Test]
     public async Task DeleteAsync_WhenActorTargetsOwnRecord_Fails()
     {
-        var sharedId = Guid.NewGuid();
-        var contact = new Contact(
-            new ContactId(sharedId),
-            ContactType.SystemAdmin,
-            ContactStatus.Active,
-            new FullName("Alice", "Smith"));
+        var contact = Contact.Register(ContactType.SystemAdmin, new FullName("Alice", "Smith")).Value;
+        contact.Activate();
         await _repository.SaveAsync(contact);
 
-        var result = await _service.DeleteAsync(contact.Id, new ContactId(sharedId));
+        var result = await _service.DeleteAsync(contact.Id, contact.Id);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().BeOfType<SelfActionForbiddenError>();
@@ -72,7 +69,8 @@ public class DeleteContactServiceTests
     [Test]
     public async Task DeleteAsync_WhenContactAlreadyDeleted_Fails()
     {
-        var contact = ContactWithStatus(ContactStatus.Deleted);
+        var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
+        contact.Delete();
         await _repository.SaveAsync(contact);
 
         var result = await _service.DeleteAsync(contact.Id, _actorId);
@@ -80,12 +78,6 @@ public class DeleteContactServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().BeOfType<InvalidStatusTransitionError>();
     }
-
-    private static Contact ContactWithStatus(ContactStatus status) => new(
-        new ContactId(Guid.NewGuid()),
-        ContactType.Provider,
-        status,
-        new FullName("Alice", "Smith"));
 }
 
 file sealed class InMemoryContactRepository : IContactRepository

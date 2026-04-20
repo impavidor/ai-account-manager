@@ -11,8 +11,10 @@ public class RegisterProviderService : IRegisterProviderService
 
     public async Task<Result<Provider, Error>> RegisterAsync(ProviderName name, Npi npi, CancellationToken ct = default)
     {
-        var provider = Provider.Register(name, npi);
-        await _repository.SaveAsync(provider, ct);
-        return Result.Success<Provider, Error>(provider);
+        var result = Provider.Register(name, npi);
+        if (result.IsFailure) return result;
+
+        await _repository.SaveAsync(result.Value, ct);
+        return result;
     }
 }

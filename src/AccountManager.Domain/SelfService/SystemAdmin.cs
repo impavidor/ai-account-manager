@@ -1,5 +1,7 @@
 using AccountManager.Common.Domain;
+using AccountManager.Common.Errors;
 using AccountManager.Domain.Shared;
+using CSharpFunctionalExtensions;
 
 namespace AccountManager.Domain.SelfService;
 
@@ -14,8 +16,8 @@ public class SystemAdmin : AggregateRoot<SystemAdminId>
         Status = ContactStatus.Pending;
     }
 
-    public static SystemAdmin Register(ProviderName name) =>
-        new(new SystemAdminId(Guid.NewGuid()), name);
+    public static Result<SystemAdmin, Error> Register(ProviderName name) =>
+        Result.Success<SystemAdmin, Error>(new SystemAdmin(new SystemAdminId(Guid.NewGuid()), name));
 
     public void ChangeName(ProviderName name) => Name = name;
 }

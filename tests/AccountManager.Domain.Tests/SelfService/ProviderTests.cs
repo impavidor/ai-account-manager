@@ -2,7 +2,7 @@ using AccountManager.Domain.SelfService;
 using AccountManager.Domain.Shared;
 using FluentAssertions;
 
-namespace AccountManager.Domain.Tests.Contacts;
+namespace AccountManager.Domain.Tests.SelfService;
 
 [TestFixture]
 public class ProviderTests
@@ -13,7 +13,7 @@ public class ProviderTests
     [Test]
     public void Register_CreatesProviderWithPendingStatus()
     {
-        var provider = Provider.Register(ValidName(), ValidNpi());
+        var provider = Provider.Register(ValidName(), ValidNpi()).Value;
 
         provider.Status.Should().Be(ContactStatus.Pending);
     }
@@ -24,7 +24,7 @@ public class ProviderTests
         var name = ValidName();
         var npi = ValidNpi();
 
-        var provider = Provider.Register(name, npi);
+        var provider = Provider.Register(name, npi).Value;
 
         provider.Name.Should().Be(name);
         provider.Npi.Should().Be(npi);
@@ -33,8 +33,8 @@ public class ProviderTests
     [Test]
     public void Register_GeneratesUniqueId()
     {
-        var a = Provider.Register(ValidName(), ValidNpi());
-        var b = Provider.Register(ValidName(), ValidNpi());
+        var a = Provider.Register(ValidName(), ValidNpi()).Value;
+        var b = Provider.Register(ValidName(), ValidNpi()).Value;
 
         a.Id.Should().NotBe(b.Id);
     }
@@ -42,7 +42,7 @@ public class ProviderTests
     [Test]
     public void ChangeName_ReplacesName()
     {
-        var provider = Provider.Register(ValidName(), ValidNpi());
+        var provider = Provider.Register(ValidName(), ValidNpi()).Value;
         var newName = ProviderName.Create("Bob", "Jones").Value;
 
         provider.ChangeName(newName);
@@ -53,7 +53,7 @@ public class ProviderTests
     [Test]
     public void ChangeNpi_ReplacesNpi()
     {
-        var provider = Provider.Register(ValidName(), ValidNpi());
+        var provider = Provider.Register(ValidName(), ValidNpi()).Value;
         var newNpi = Npi.Create("9876543210").Value;
 
         provider.ChangeNpi(newNpi);

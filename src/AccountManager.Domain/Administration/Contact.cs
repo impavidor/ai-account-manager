@@ -11,12 +11,15 @@ public class Contact : AggregateRoot<ContactId>
     public ContactStatus Status { get; private set; }
     public ContactName Name { get; }
 
-    public Contact(ContactId id, ContactType type, ContactStatus status, ContactName name) : base(id)
+    private Contact(ContactId id, ContactType type, ContactStatus status, ContactName name) : base(id)
     {
         Type = type;
         Status = status;
         Name = name;
     }
+
+    public static Result<Contact, Error> Register(ContactType type, ContactName name) =>
+        Result.Success<Contact, Error>(new Contact(new ContactId(Guid.NewGuid()), type, ContactStatus.Pending, name));
 
     public UnitResult<Error> Activate()
     {

@@ -2,7 +2,7 @@ using AccountManager.Domain.SelfService;
 using AccountManager.Domain.Shared;
 using FluentAssertions;
 
-namespace AccountManager.Domain.Tests.Contacts;
+namespace AccountManager.Domain.Tests.SelfService;
 
 [TestFixture]
 public class SystemAdminTests
@@ -12,7 +12,7 @@ public class SystemAdminTests
     [Test]
     public void Register_CreatesSystemAdminWithPendingStatus()
     {
-        var admin = SystemAdmin.Register(ValidName());
+        var admin = SystemAdmin.Register(ValidName()).Value;
 
         admin.Status.Should().Be(ContactStatus.Pending);
     }
@@ -22,7 +22,7 @@ public class SystemAdminTests
     {
         var name = ValidName();
 
-        var admin = SystemAdmin.Register(name);
+        var admin = SystemAdmin.Register(name).Value;
 
         admin.Name.Should().Be(name);
     }
@@ -30,8 +30,8 @@ public class SystemAdminTests
     [Test]
     public void Register_GeneratesUniqueId()
     {
-        var a = SystemAdmin.Register(ValidName());
-        var b = SystemAdmin.Register(ValidName());
+        var a = SystemAdmin.Register(ValidName()).Value;
+        var b = SystemAdmin.Register(ValidName()).Value;
 
         a.Id.Should().NotBe(b.Id);
     }
@@ -39,7 +39,7 @@ public class SystemAdminTests
     [Test]
     public void ChangeName_ReplacesName()
     {
-        var admin = SystemAdmin.Register(ValidName());
+        var admin = SystemAdmin.Register(ValidName()).Value;
         var newName = ProviderName.Create("Bob", "Jones").Value;
 
         admin.ChangeName(newName);

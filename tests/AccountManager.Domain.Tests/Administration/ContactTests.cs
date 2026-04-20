@@ -7,23 +7,22 @@ namespace AccountManager.Domain.Tests.Administration;
 [TestFixture]
 public class ContactTests
 {
-    private static Contact PendingContact() => new(
-        new ContactId(Guid.NewGuid()),
-        ContactType.Provider,
-        ContactStatus.Pending,
-        new FullName("Alice", "Smith"));
+    private static Contact PendingContact() =>
+        Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
 
-    private static Contact ActiveContact() => new(
-        new ContactId(Guid.NewGuid()),
-        ContactType.Provider,
-        ContactStatus.Active,
-        new FullName("Alice", "Smith"));
+    private static Contact ActiveContact()
+    {
+        var c = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
+        c.Activate();
+        return c;
+    }
 
-    private static Contact DeletedContact() => new(
-        new ContactId(Guid.NewGuid()),
-        ContactType.Provider,
-        ContactStatus.Deleted,
-        new FullName("Alice", "Smith"));
+    private static Contact DeletedContact()
+    {
+        var c = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
+        c.Delete();
+        return c;
+    }
 
     // --- Activate ---
 

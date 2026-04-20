@@ -22,7 +22,7 @@ public class ActivateContactServiceTests
     [Test]
     public async Task ActivateAsync_WithPendingContact_Succeeds()
     {
-        var contact = PendingContact();
+        var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
         await _repository.SaveAsync(contact);
 
         var result = await _service.ActivateAsync(contact.Id, _actorId);
@@ -34,15 +34,10 @@ public class ActivateContactServiceTests
     [Test]
     public async Task ActivateAsync_WhenActorTargetsOwnRecord_Fails()
     {
-        var sharedId = Guid.NewGuid();
-        var contact = new Contact(
-            new ContactId(sharedId),
-            ContactType.SystemAdmin,
-            ContactStatus.Pending,
-            new FullName("Alice", "Smith"));
+        var contact = Contact.Register(ContactType.SystemAdmin, new FullName("Alice", "Smith")).Value;
         await _repository.SaveAsync(contact);
 
-        var result = await _service.ActivateAsync(contact.Id, new ContactId(sharedId));
+        var result = await _service.ActivateAsync(contact.Id, contact.Id);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().BeOfType<SelfActionForbiddenError>();
@@ -60,11 +55,8 @@ public class ActivateContactServiceTests
     [Test]
     public async Task ActivateAsync_WhenContactAlreadyActive_Fails()
     {
-        var contact = new Contact(
-            new ContactId(Guid.NewGuid()),
-            ContactType.Provider,
-            ContactStatus.Active,
-            new FullName("Alice", "Smith"));
+        var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
+        contact.Activate();
         await _repository.SaveAsync(contact);
 
         var result = await _service.ActivateAsync(contact.Id, _actorId);
@@ -72,12 +64,6 @@ public class ActivateContactServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().BeOfType<InvalidStatusTransitionError>();
     }
-
-    private static Contact PendingContact() => new(
-        new ContactId(Guid.NewGuid()),
-        ContactType.Provider,
-        ContactStatus.Pending,
-        new FullName("Alice", "Smith"));
 }
 
 file sealed class InMemoryContactRepository : IContactRepository
