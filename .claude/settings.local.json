@@ -13,7 +13,9 @@
       "Bash(Unblock-File -ErrorAction SilentlyContinue)",
       "Bash(Write-Host \"Unblocked\")",
       "Bash(powershell *)",
-      "Bash(dotnet-script -e \"\")"
+      "Bash(dotnet-script -e \"\")",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
