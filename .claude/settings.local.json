@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep *)",
-      "Bash(dotnet new sln *)"
+      "Bash(dotnet new sln *)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet sln *)",
+      "Bash(dotnet add *)",
+      "Bash(rm src/AccountManager.Common/Class1.cs src/AccountManager.Domain/Class1.cs)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Dev\\\\ai-account-manager\" -Recurse -Filter \"*.dll\")",
+      "Bash(Unblock-File -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Unblocked\")",
+      "Bash(powershell *)",
+      "Bash(dotnet-script -e \"\")"
     ]
   }
 }

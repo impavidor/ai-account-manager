@@ -1,0 +1,16 @@
+C:\Dev\ai-account-manager\src\AccountManager.Domain\bin\Debug\net9.0\AccountManager.Domain.deps.json
+C:\Dev\ai-account-manager\src\AccountManager.Domain\bin\Debug\net9.0\AccountManager.Domain.dll
+C:\Dev\ai-account-manager\src\AccountManager.Domain\bin\Debug\net9.0\AccountManager.Domain.pdb
+C:\Dev\ai-account-manager\src\AccountManager.Domain\bin\Debug\net9.0\AccountManager.Common.dll
+C:\Dev\ai-account-manager\src\AccountManager.Domain\bin\Debug\net9.0\AccountManager.Common.pdb
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.csproj.AssemblyReference.cache
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.AssemblyInfoInputs.cache
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.AssemblyInfo.cs
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.csproj.CoreCompileInputs.cache
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.sourcelink.json
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountM.736F775C.Up2Date
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.dll
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\refint\AccountManager.Domain.dll
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\AccountManager.Domain.pdb
+C:\Dev\ai-account-manager\src\AccountManager.Domain\obj\Debug\net9.0\ref\AccountManager.Domain.dll

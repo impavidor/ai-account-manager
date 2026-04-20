@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "skM6TaXY/YQ=",
+  "success": true,
+  "projectFilePath": "C:\\Dev\\ai-account-manager\\src\\AccountManager.Domain\\AccountManager.Domain.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\impav\\.nuget\\packages\\csharpfunctionalextensions\\3.7.0\\csharpfunctionalextensions.3.7.0.nupkg.sha512"
+  ],
+  "logs": []
+}
