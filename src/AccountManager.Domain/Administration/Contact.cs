@@ -1,19 +1,18 @@
+using AccountManager.Common.Domain;
 using AccountManager.Common.Errors;
 using AccountManager.Domain.Shared;
 using CSharpFunctionalExtensions;
 
 namespace AccountManager.Domain.Administration;
 
-public class Contact
+public class Contact : AggregateRoot<ContactId>
 {
-    public ContactId Id { get; }
     public ContactType Type { get; }
     public ContactStatus Status { get; private set; }
     public ContactName Name { get; }
 
-    public Contact(ContactId id, ContactType type, ContactStatus status, ContactName name)
+    public Contact(ContactId id, ContactType type, ContactStatus status, ContactName name) : base(id)
     {
-        Id = id;
         Type = type;
         Status = status;
         Name = name;
@@ -38,7 +37,4 @@ public class Contact
         Status = ContactStatus.Deleted;
         return UnitResult.Success<Error>();
     }
-
-    public override bool Equals(object? obj) => obj is Contact c && c.Id == Id;
-    public override int GetHashCode() => Id.GetHashCode();
 }

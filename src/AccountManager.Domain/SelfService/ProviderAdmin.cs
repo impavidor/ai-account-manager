@@ -1,16 +1,15 @@
+using AccountManager.Common.Domain;
 using AccountManager.Domain.Shared;
 
 namespace AccountManager.Domain.SelfService;
 
-public class ProviderAdmin
+public class ProviderAdmin : AggregateRoot<ProviderAdminId>
 {
-    public ProviderAdminId Id { get; }
     public ProviderName Name { get; private set; }
     public ContactStatus Status { get; }
 
-    private ProviderAdmin(ProviderAdminId id, ProviderName name)
+    private ProviderAdmin(ProviderAdminId id, ProviderName name) : base(id)
     {
-        Id = id;
         Name = name;
         Status = ContactStatus.Pending;
     }
@@ -19,7 +18,4 @@ public class ProviderAdmin
         new(new ProviderAdminId(Guid.NewGuid()), name);
 
     public void ChangeName(ProviderName name) => Name = name;
-
-    public override bool Equals(object? obj) => obj is ProviderAdmin a && a.Id == Id;
-    public override int GetHashCode() => Id.GetHashCode();
 }
