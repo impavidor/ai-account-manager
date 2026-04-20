@@ -122,41 +122,56 @@ The write and read infrastructure are fully isolated from each other:
 ```
 AccountManager.sln
 ├── src/
-│   ├── AccountManager.Common/                  ← Error base record; no domain logic
+│   ├── AccountManager.Common/                  ← Shared base types; no domain logic
+│   │   ├── Domain/
+│   │   │   ├── Entity.cs                       ← Abstract Entity<T> base class
+│   │   │   └── AggregateRoot.cs                ← Abstract AggregateRoot<T> : Entity<T>
 │   │   └── Errors/
 │   │       └── Error.cs
 │   │
 │   ├── AccountManager.Domain/                  ← Aggregates, value objects, domain errors
-│   │   └── Contacts/
-│   │       ├── ValueObjects/
-│   │       │   ├── ContactId.cs
-│   │       │   ├── ProviderId.cs
-│   │       │   ├── ProviderAdminId.cs
-│   │       │   ├── SystemAdminId.cs
-│   │       │   ├── ProviderName.cs
-│   │       │   ├── Npi.cs
-│   │       │   ├── ContactStatus.cs
-│   │       │   └── ContactName.cs
-│   │       ├── Errors/
-│   │       │   ├── InvalidNpiError.cs
-│   │       │   ├── InvalidProviderNameError.cs
-│   │       │   └── InvalidStatusTransitionError.cs
-│   │       ├── Services/
-│   │       │   ├── IRegisterProviderService.cs  ← Self-service BC
-│   │       │   ├── RegisterProviderService.cs   ← Self-service BC
-│   │       │   ├── IActivateContactService.cs   ← Administration BC
-│   │       │   ├── ActivateContactService.cs    ← Administration BC
-│   │       │   ├── IDeleteContactService.cs     ← Administration BC
-│   │       │   └── DeleteContactService.cs      ← Administration BC
-│   │       ├── Repositories/
-│   │       │   ├── IContactRepository.cs
-│   │       │   ├── IProviderRepository.cs
-│   │       │   ├── IProviderAdminRepository.cs
-│   │       │   └── ISystemAdminRepository.cs
-│   │       ├── Provider.cs
-│   │       ├── ProviderAdmin.cs
-│   │       ├── SystemAdmin.cs
-│   │       └── Contact.cs                      ← Administration BC aggregate
+│   │   ├── Administration/                     ← Administration Bounded Context
+│   │   │   ├── ValueObjects/
+│   │   │   │   ├── ContactId.cs
+│   │   │   │   ├── ContactName.cs
+│   │   │   │   └── ContactType.cs
+│   │   │   ├── Errors/
+│   │   │   │   ├── ContactNotFoundError.cs
+│   │   │   │   ├── InvalidStatusTransitionError.cs
+│   │   │   │   └── SelfActionForbiddenError.cs
+│   │   │   ├── Repositories/
+│   │   │   │   └── IContactRepository.cs
+│   │   │   ├── Services/
+│   │   │   │   ├── IActivateContactService.cs
+│   │   │   │   ├── ActivateContactService.cs
+│   │   │   │   ├── IDeleteContactService.cs
+│   │   │   │   └── DeleteContactService.cs
+│   │   │   └── Contact.cs
+│   │   │
+│   │   ├── SelfService/                        ← Self-service Bounded Context
+│   │   │   ├── ValueObjects/
+│   │   │   │   ├── ProviderId.cs
+│   │   │   │   ├── ProviderAdminId.cs
+│   │   │   │   ├── SystemAdminId.cs
+│   │   │   │   ├── ProviderName.cs
+│   │   │   │   └── Npi.cs
+│   │   │   ├── Errors/
+│   │   │   │   ├── InvalidNpiError.cs
+│   │   │   │   └── InvalidProviderNameError.cs
+│   │   │   ├── Repositories/
+│   │   │   │   ├── IProviderRepository.cs
+│   │   │   │   ├── IProviderAdminRepository.cs
+│   │   │   │   └── ISystemAdminRepository.cs
+│   │   │   ├── Services/
+│   │   │   │   ├── IRegisterProviderService.cs
+│   │   │   │   └── RegisterProviderService.cs
+│   │   │   ├── Provider.cs
+│   │   │   ├── ProviderAdmin.cs
+│   │   │   └── SystemAdmin.cs
+│   │   │
+│   │   └── Shared/                             ← Concepts shared across BCs
+│   │       └── ValueObjects/
+│   │           └── ContactStatus.cs
 │   │
 │   ├── AccountManager.Application/             ← deferred
 │   ├── AccountManager.Infrastructure.Write/    ← deferred
@@ -165,6 +180,9 @@ AccountManager.sln
 │
 └── tests/
     ├── AccountManager.Domain.Tests/
+    │   ├── Administration/
+    │   ├── SelfService/
+    │   └── Shared/
     └── AccountManager.Application.Tests/       ← deferred
 ```
 
@@ -182,10 +200,10 @@ AccountManager.Common  →  CSharpFunctionalExtensions (NuGet)
 
 | Concept           | Definition in this project                                               |
 | ----------------- | ------------------------------------------------------------------------ |
-| **Entity**        | Has identity (id); equality is by id                                     |
-| **Value Object**  | No identity; equality is by value; immutable                             |
-| **Aggregate**     | Cluster of entities/value objects with a single Aggregate Root           |
-| **Domain Event**  | Records something that happened in the domain (past tense)               |
+| **Entity**        | Has identity (id); equality is by id; base class `Entity<T>` in `Common` |
+| **Value Object**  | No identity; equality is by value; immutable; implemented as `record`    |
+| **Aggregate**     | Cluster of entities/value objects with a single Aggregate Root; base class `AggregateRoot<T>` in `Common` |
+| **Domain Event**  | Records something that happened in the domain (past tense); deferred     |
 | **Repository**    | Interface in `domain/`; implementation in `infrastructure/write/`        |
 | **Projector**     | Interface in `application/`; implementation in `infrastructure/read/`    |
 
@@ -351,7 +369,7 @@ All domain services have a corresponding interface, prefixed with `I`, defined i
 | `ActivateContactService` | `IActivateContactService`   | Checks eligibility, delegates to `Contact.Activate()`, returns `Result`       |
 | `DeleteContactService`   | `IDeleteContactService`     | Checks eligibility, delegates to `Contact.Delete()`, returns `Result`         |
 
-**Eligibility invariant:** a `SystemAdmin` cannot act on their own `Contact` record. Enforced by comparing `SystemAdminId.Value` (actor) against `ContactId.Value` (target) — same UUID, distinct non-interchangeable types.
+**Eligibility invariant:** a `SystemAdmin` cannot act on their own `Contact` record. Enforced by comparing `ContactId` (actor) against `ContactId` (target) using record equality. The Application layer is responsible for resolving the logged-in user's `SystemAdminId` to their `ContactId` before invoking domain services.
 
 > The application-layer command is `VerifyContact` (user intent). The domain service is `ActivateContactService` (domain effect). The `VerifyContactHandler` calls `ActivateContactService`.
 

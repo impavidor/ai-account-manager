@@ -11,16 +11,12 @@
           "AccountManager.Domain": "1.0.0",
           "FluentAssertions": "6.12.2",
           "Microsoft.NET.Test.Sdk": "17.12.0",
-          "NUnit": "4.2.2",
-          "NUnit.Analyzers": "4.4.0",
-          "NUnit3TestAdapter": "4.6.0",
-          "coverlet.collector": "6.0.2"
+          "NUnit": "4.2.2"
         },
         "runtime": {
           "AccountManager.Domain.Tests.dll": {}
         }
       },
-      "coverlet.collector/6.0.2": {},
       "CSharpFunctionalExtensions/3.7.0": {
         "runtime": {
           "lib/net8.0/CSharpFunctionalExtensions.dll": {
@@ -55,9 +51,6 @@
         }
       },
       "Microsoft.TestPlatform.ObjectModel/17.12.0": {
-        "dependencies": {
-          "System.Reflection.Metadata": "1.6.0"
-        },
         "runtime": {
           "lib/netcoreapp3.1/Microsoft.TestPlatform.CoreUtilities.dll": {
             "assemblyVersion": "15.0.0.0",
@@ -320,8 +313,6 @@
           }
         }
       },
-      "NUnit.Analyzers/4.4.0": {},
-      "NUnit3TestAdapter/4.6.0": {},
       "System.Configuration.ConfigurationManager/4.4.0": {
         "dependencies": {
           "System.Security.Cryptography.ProtectedData": "4.4.0"
@@ -333,7 +324,6 @@
           }
         }
       },
-      "System.Reflection.Metadata/1.6.0": {},
       "System.Security.Cryptography.ProtectedData/4.4.0": {
         "runtime": {
           "lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll": {
@@ -380,13 +370,6 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
-    },
-    "coverlet.collector/6.0.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-bJShQ6uWRTQ100ZeyiMqcFlhP7WJ+bCuabUs885dJiBEzMsJMSFr7BOyeCw4rgvQokteGi5rKQTlkhfQPUXg2A==",
-      "path": "coverlet.collector/6.0.2",
-      "hashPath": "coverlet.collector.6.0.2.nupkg.sha512"
     },
     "CSharpFunctionalExtensions/3.7.0": {
       "type": "package",
@@ -444,33 +427,12 @@
       "path": "nunit/4.2.2",
       "hashPath": "nunit.4.2.2.nupkg.sha512"
     },
-    "NUnit.Analyzers/4.4.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-VVl1CuQttXRZh52HRw5SIOut3qXw4pmuiTYk02jTELVWZ9uYRY8IVl2qF9Zs7W0ElPiLDUrAglFBzNLBCPzEcw==",
-      "path": "nunit.analyzers/4.4.0",
-      "hashPath": "nunit.analyzers.4.4.0.nupkg.sha512"
-    },
-    "NUnit3TestAdapter/4.6.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-R7e1+a4vuV/YS+ItfL7f//rG+JBvVeVLX4mHzFEZo4W1qEKl8Zz27AqvQSAqo+BtIzUCo4aAJMYa56VXS4hudw==",
-      "path": "nunit3testadapter/4.6.0",
-      "hashPath": "nunit3testadapter.4.6.0.nupkg.sha512"
-    },
     "System.Configuration.ConfigurationManager/4.4.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-gWwQv/Ug1qWJmHCmN17nAbxJYmQBM/E94QxKLksvUiiKB1Ld3Sc/eK1lgmbSjDFxkQhVuayI/cGFZhpBSodLrg==",
       "path": "system.configuration.configurationmanager/4.4.0",
       "hashPath": "system.configuration.configurationmanager.4.4.0.nupkg.sha512"
-    },
-    "System.Reflection.Metadata/1.6.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-COC1aiAJjCoA5GBF+QKL2uLqEBew4JsCkQmoHKbN3TlOZKa2fKLz5CpiRQKDz0RsAOEGsVKqOD5bomsXq/4STQ==",
-      "path": "system.reflection.metadata/1.6.0",
-      "hashPath": "system.reflection.metadata.1.6.0.nupkg.sha512"
     },
     "System.Security.Cryptography.ProtectedData/4.4.0": {
       "type": "package",
