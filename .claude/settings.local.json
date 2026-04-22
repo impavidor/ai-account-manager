@@ -20,7 +20,12 @@
       "Bash(gh issue create --title 'File-based repository implementation \\(Infrastructure prototype\\)' --body ' *)",
       "Bash(gh auth *)",
       "Bash(git push *)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(grep -E \"\\\\.md$|^d\")",
+      "Bash(dotnet clean *)",
+      "Bash(grep \"\\\\.cs$\")",
+      "Bash(xargs rm *)",
+      "Bash(git rm *)"
     ]
   }
 }
