@@ -61,8 +61,18 @@ file sealed class InMemoryProviderRepository : IProviderRepository
     public Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken ct = default) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var p) ? p : null);
 
-    public Task SaveAsync(Provider provider, CancellationToken ct = default)
+    public Task Add(Provider provider, CancellationToken ct = default)
     {
+        if (_store.ContainsKey(provider.Id.Value))
+            throw new InvalidOperationException($"Provider {provider.Id.Value} already exists.");
+        _store[provider.Id.Value] = provider;
+        return Task.CompletedTask;
+    }
+
+    public Task Update(Provider provider, CancellationToken ct = default)
+    {
+        if (!_store.ContainsKey(provider.Id.Value))
+            throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");
         _store[provider.Id.Value] = provider;
         return Task.CompletedTask;
     }

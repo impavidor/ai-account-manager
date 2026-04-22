@@ -14,7 +14,7 @@ public class RegisterProviderService : IRegisterProviderService
         var result = Provider.Register(name, npi);
         if (result.IsFailure) return result;
 
-        await _repository.SaveAsync(result.Value, ct);
+        await _repository.Add(result.Value, ct);
         return result;
     }
 }

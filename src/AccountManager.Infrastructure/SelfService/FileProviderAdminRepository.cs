@@ -17,12 +17,22 @@ public class FileProviderAdminRepository : IProviderAdminRepository
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task SaveAsync(ProviderAdmin admin, CancellationToken ct = default)
+    public async Task Add(ProviderAdmin admin, CancellationToken ct = default)
+    {
+        var all = (await _store.LoadAllAsync(ct)).ToList();
+        if (all.Any(x => x.Id == admin.Id.Value))
+            throw new InvalidOperationException($"ProviderAdmin {admin.Id.Value} already exists.");
+        all.Add(ToDto(admin));
+        await _store.SaveAllAsync(all, ct);
+    }
+
+    public async Task Update(ProviderAdmin admin, CancellationToken ct = default)
     {
         var all = (await _store.LoadAllAsync(ct)).ToList();
         var idx = all.FindIndex(x => x.Id == admin.Id.Value);
-        var dto = ToDto(admin);
-        if (idx >= 0) all[idx] = dto; else all.Add(dto);
+        if (idx < 0)
+            throw new InvalidOperationException($"ProviderAdmin {admin.Id.Value} not found.");
+        all[idx] = ToDto(admin);
         await _store.SaveAllAsync(all, ct);
     }
 

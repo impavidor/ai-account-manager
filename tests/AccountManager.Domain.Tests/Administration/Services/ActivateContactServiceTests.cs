@@ -23,7 +23,7 @@ public class ActivateContactServiceTests
     public async Task ActivateAsync_WithPendingContact_Succeeds()
     {
         var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
-        await _repository.SaveAsync(contact);
+        await _repository.Add(contact);
 
         var result = await _service.ActivateAsync(contact.Id, _actorId);
 
@@ -35,7 +35,7 @@ public class ActivateContactServiceTests
     public async Task ActivateAsync_WhenActorTargetsOwnRecord_Fails()
     {
         var contact = Contact.Register(ContactType.SystemAdmin, new FullName("Alice", "Smith")).Value;
-        await _repository.SaveAsync(contact);
+        await _repository.Add(contact);
 
         var result = await _service.ActivateAsync(contact.Id, contact.Id);
 
@@ -57,7 +57,7 @@ public class ActivateContactServiceTests
     {
         var contact = Contact.Register(ContactType.Provider, new FullName("Alice", "Smith")).Value;
         contact.Activate();
-        await _repository.SaveAsync(contact);
+        await _repository.Add(contact);
 
         var result = await _service.ActivateAsync(contact.Id, _actorId);
 
@@ -73,8 +73,18 @@ file sealed class InMemoryContactRepository : IContactRepository
     public Task<Contact?> GetByIdAsync(ContactId id, CancellationToken ct = default) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var c) ? c : null);
 
-    public Task SaveAsync(Contact contact, CancellationToken ct = default)
+    public Task Add(Contact contact, CancellationToken ct = default)
     {
+        if (_store.ContainsKey(contact.Id.Value))
+            throw new InvalidOperationException($"Contact {contact.Id.Value} already exists.");
+        _store[contact.Id.Value] = contact;
+        return Task.CompletedTask;
+    }
+
+    public Task Update(Contact contact, CancellationToken ct = default)
+    {
+        if (!_store.ContainsKey(contact.Id.Value))
+            throw new InvalidOperationException($"Contact {contact.Id.Value} not found.");
         _store[contact.Id.Value] = contact;
         return Task.CompletedTask;
     }

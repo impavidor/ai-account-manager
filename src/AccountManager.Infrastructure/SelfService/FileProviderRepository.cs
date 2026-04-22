@@ -17,12 +17,22 @@ public class FileProviderRepository : IProviderRepository
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task SaveAsync(Provider provider, CancellationToken ct = default)
+    public async Task Add(Provider provider, CancellationToken ct = default)
+    {
+        var all = (await _store.LoadAllAsync(ct)).ToList();
+        if (all.Any(x => x.Id == provider.Id.Value))
+            throw new InvalidOperationException($"Provider {provider.Id.Value} already exists.");
+        all.Add(ToDto(provider));
+        await _store.SaveAllAsync(all, ct);
+    }
+
+    public async Task Update(Provider provider, CancellationToken ct = default)
     {
         var all = (await _store.LoadAllAsync(ct)).ToList();
         var idx = all.FindIndex(x => x.Id == provider.Id.Value);
-        var dto = ToDto(provider);
-        if (idx >= 0) all[idx] = dto; else all.Add(dto);
+        if (idx < 0)
+            throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");
+        all[idx] = ToDto(provider);
         await _store.SaveAllAsync(all, ct);
     }
 

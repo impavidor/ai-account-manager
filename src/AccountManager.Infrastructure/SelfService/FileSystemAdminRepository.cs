@@ -17,12 +17,22 @@ public class FileSystemAdminRepository : ISystemAdminRepository
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task SaveAsync(SystemAdmin admin, CancellationToken ct = default)
+    public async Task Add(SystemAdmin admin, CancellationToken ct = default)
+    {
+        var all = (await _store.LoadAllAsync(ct)).ToList();
+        if (all.Any(x => x.Id == admin.Id.Value))
+            throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} already exists.");
+        all.Add(ToDto(admin));
+        await _store.SaveAllAsync(all, ct);
+    }
+
+    public async Task Update(SystemAdmin admin, CancellationToken ct = default)
     {
         var all = (await _store.LoadAllAsync(ct)).ToList();
         var idx = all.FindIndex(x => x.Id == admin.Id.Value);
-        var dto = ToDto(admin);
-        if (idx >= 0) all[idx] = dto; else all.Add(dto);
+        if (idx < 0)
+            throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} not found.");
+        all[idx] = ToDto(admin);
         await _store.SaveAllAsync(all, ct);
     }
 

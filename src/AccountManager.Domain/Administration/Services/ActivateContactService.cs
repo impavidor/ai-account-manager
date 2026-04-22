@@ -22,7 +22,7 @@ public class ActivateContactService : IActivateContactService
         if (result.IsFailure)
             return result;
 
-        await _repository.SaveAsync(contact, ct);
+        await _repository.Update(contact, ct);
         return UnitResult.Success<Error>();
     }
 }

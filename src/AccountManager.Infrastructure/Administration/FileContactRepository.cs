@@ -17,12 +17,22 @@ public class FileContactRepository : IContactRepository
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task SaveAsync(Contact contact, CancellationToken ct = default)
+    public async Task Add(Contact contact, CancellationToken ct = default)
+    {
+        var all = (await _store.LoadAllAsync(ct)).ToList();
+        if (all.Any(x => x.Id == contact.Id.Value))
+            throw new InvalidOperationException($"Contact {contact.Id.Value} already exists.");
+        all.Add(ToDto(contact));
+        await _store.SaveAllAsync(all, ct);
+    }
+
+    public async Task Update(Contact contact, CancellationToken ct = default)
     {
         var all = (await _store.LoadAllAsync(ct)).ToList();
         var idx = all.FindIndex(x => x.Id == contact.Id.Value);
-        var dto = ToDto(contact);
-        if (idx >= 0) all[idx] = dto; else all.Add(dto);
+        if (idx < 0)
+            throw new InvalidOperationException($"Contact {contact.Id.Value} not found.");
+        all[idx] = ToDto(contact);
         await _store.SaveAllAsync(all, ct);
     }
 
