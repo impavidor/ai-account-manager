@@ -15,7 +15,12 @@
       "Bash(powershell *)",
       "Bash(dotnet-script -e \"\")",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh issue create --title 'File-based repository implementation \\(Infrastructure prototype\\)' --body ' *)",
+      "Bash(gh auth *)",
+      "Bash(git push *)",
+      "Bash(gh issue *)"
     ]
   }
 }
