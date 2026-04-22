@@ -10,6 +10,13 @@ public class ProviderAdmin : AggregateRoot<ProviderAdminId>
     public ProviderName Name { get; private set; }
     public ContactStatus Status { get; }
 
+    internal ProviderAdmin(Guid id, ProviderName name, ContactStatus status)
+        : base(new ProviderAdminId(id))
+    {
+        Name = name;
+        Status = status;
+    }
+
     private ProviderAdmin(ProviderAdminId id, ProviderName name) : base(id)
     {
         Name = name;

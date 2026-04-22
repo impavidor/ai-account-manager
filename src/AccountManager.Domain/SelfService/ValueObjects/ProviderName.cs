@@ -9,7 +9,7 @@ public record ProviderName
     public string FirstName { get; }
     public string LastName { get; }
 
-    private ProviderName(string firstName, string lastName)
+    internal ProviderName(string firstName, string lastName)
     {
         FirstName = firstName;
         LastName = lastName;

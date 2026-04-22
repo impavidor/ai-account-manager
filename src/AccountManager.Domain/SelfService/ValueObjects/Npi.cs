@@ -8,7 +8,7 @@ public record Npi
 {
     public string Value { get; }
 
-    private Npi(string value) => Value = value;
+    internal Npi(string value) => Value = value;
 
     public static Result<Npi, Error> Create(string value)
     {
