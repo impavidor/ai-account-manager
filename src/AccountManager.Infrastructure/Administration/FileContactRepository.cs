@@ -10,7 +10,7 @@ public class FileContactRepository : IContactRepository
     public FileContactRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
 
-    public async Task<Contact?> GetByIdAsync(ContactId id)
+    public async Task<Contact?> GetById(ContactId id)
     {
         var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);

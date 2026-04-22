@@ -14,7 +14,7 @@ public class ActivateContactService : IActivateContactService
         if (contactId == actorId)
             return UnitResult.Failure<Error>(new SelfActionForbiddenError());
 
-        var contact = await _repository.GetByIdAsync(contactId);
+        var contact = await _repository.GetById(contactId);
         if (contact is null)
             return UnitResult.Failure<Error>(new ContactNotFoundError(contactId));
 

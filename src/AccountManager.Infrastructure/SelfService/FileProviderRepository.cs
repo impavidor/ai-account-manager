@@ -10,7 +10,7 @@ public class FileProviderRepository : IProviderRepository
     public FileProviderRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<ProviderDto>(Path.Combine(options.BasePath, "providers.json"));
 
-    public async Task<Provider?> GetByIdAsync(ProviderId id)
+    public async Task<Provider?> GetById(ProviderId id)
     {
         var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);

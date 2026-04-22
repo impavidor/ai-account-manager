@@ -10,7 +10,7 @@ public class FileProviderAdminRepository : IProviderAdminRepository
     public FileProviderAdminRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<ProviderAdminDto>(Path.Combine(options.BasePath, "provideradmins.json"));
 
-    public async Task<ProviderAdmin?> GetByIdAsync(ProviderAdminId id)
+    public async Task<ProviderAdmin?> GetById(ProviderAdminId id)
     {
         var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);

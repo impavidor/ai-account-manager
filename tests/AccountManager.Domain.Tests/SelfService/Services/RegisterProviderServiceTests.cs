@@ -49,7 +49,7 @@ public class RegisterProviderServiceTests
 
         var result = await _service.RegisterAsync(name, npi);
 
-        var saved = await _repository.GetByIdAsync(result.Value.Id);
+        var saved = await _repository.GetById(result.Value.Id);
         saved.Should().NotBeNull();
     }
 }
@@ -58,7 +58,7 @@ file sealed class InMemoryProviderRepository : IProviderRepository
 {
     private readonly Dictionary<Guid, Provider> _store = new();
 
-    public Task<Provider?> GetByIdAsync(ProviderId id) =>
+    public Task<Provider?> GetById(ProviderId id) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var p) ? p : null);
 
     public Task Add(Provider provider)

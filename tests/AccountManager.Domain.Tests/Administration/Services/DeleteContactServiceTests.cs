@@ -84,7 +84,7 @@ file sealed class InMemoryContactRepository : IContactRepository
 {
     private readonly Dictionary<Guid, Contact> _store = new();
 
-    public Task<Contact?> GetByIdAsync(ContactId id) =>
+    public Task<Contact?> GetById(ContactId id) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var c) ? c : null);
 
     public Task Add(Contact contact)

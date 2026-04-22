@@ -10,7 +10,7 @@ public class FileSystemAdminRepository : ISystemAdminRepository
     public FileSystemAdminRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<SystemAdminDto>(Path.Combine(options.BasePath, "systemadmins.json"));
 
-    public async Task<SystemAdmin?> GetByIdAsync(SystemAdminId id)
+    public async Task<SystemAdmin?> GetById(SystemAdminId id)
     {
         var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);
