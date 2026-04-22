@@ -6,35 +6,31 @@ namespace AccountManager.Infrastructure.SelfService;
 
 public class FileProviderRepository : IProviderRepository
 {
-    private readonly JsonFileStore<ContactDto> _store;
+    private readonly JsonFileStores _stores;
 
-    public FileProviderRepository(FileRepositoryOptions options)
-        => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
+    public FileProviderRepository(JsonFileStores stores) => _stores = stores;
 
-    public async Task<Provider?> GetById(ProviderId id)
+    public Task<Provider?> GetById(ProviderId id)
     {
-        var all = await _store.LoadAllAsync();
-        var dto = all.FirstOrDefault(x => x.Id == id.Value && x.Type == ContactType.Provider);
-        return dto is null ? null : ToDomain(dto);
+        var dto = _stores.Contacts.FirstOrDefault(x => x.Id == id.Value && x.Type == ContactType.Provider);
+        return Task.FromResult(dto is null ? null : ToDomain(dto));
     }
 
-    public async Task Add(Provider provider)
+    public Task Add(Provider provider)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        if (all.Any(x => x.Id == provider.Id.Value))
+        if (_stores.Contacts.Any(x => x.Id == provider.Id.Value))
             throw new InvalidOperationException($"Provider {provider.Id.Value} already exists.");
-        all.Add(ToDto(provider));
-        await _store.SaveAllAsync(all);
+        _stores.Contacts.Add(ToDto(provider));
+        return Task.CompletedTask;
     }
 
-    public async Task Update(Provider provider)
+    public Task Update(Provider provider)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        var idx = all.FindIndex(x => x.Id == provider.Id.Value && x.Type == ContactType.Provider);
+        var idx = _stores.Contacts.FindIndex(x => x.Id == provider.Id.Value && x.Type == ContactType.Provider);
         if (idx < 0)
             throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");
-        all[idx] = ToDto(provider);
-        await _store.SaveAllAsync(all);
+        _stores.Contacts[idx] = ToDto(provider);
+        return Task.CompletedTask;
     }
 
     private static Provider ToDomain(ContactDto dto) =>

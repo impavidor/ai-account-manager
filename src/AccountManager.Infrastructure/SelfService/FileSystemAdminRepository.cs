@@ -6,35 +6,31 @@ namespace AccountManager.Infrastructure.SelfService;
 
 public class FileSystemAdminRepository : ISystemAdminRepository
 {
-    private readonly JsonFileStore<ContactDto> _store;
+    private readonly JsonFileStores _stores;
 
-    public FileSystemAdminRepository(FileRepositoryOptions options)
-        => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
+    public FileSystemAdminRepository(JsonFileStores stores) => _stores = stores;
 
-    public async Task<SystemAdmin?> GetById(SystemAdminId id)
+    public Task<SystemAdmin?> GetById(SystemAdminId id)
     {
-        var all = await _store.LoadAllAsync();
-        var dto = all.FirstOrDefault(x => x.Id == id.Value && x.Type == ContactType.SystemAdmin);
-        return dto is null ? null : ToDomain(dto);
+        var dto = _stores.Contacts.FirstOrDefault(x => x.Id == id.Value && x.Type == ContactType.SystemAdmin);
+        return Task.FromResult(dto is null ? null : ToDomain(dto));
     }
 
-    public async Task Add(SystemAdmin admin)
+    public Task Add(SystemAdmin admin)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        if (all.Any(x => x.Id == admin.Id.Value))
+        if (_stores.Contacts.Any(x => x.Id == admin.Id.Value))
             throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} already exists.");
-        all.Add(ToDto(admin));
-        await _store.SaveAllAsync(all);
+        _stores.Contacts.Add(ToDto(admin));
+        return Task.CompletedTask;
     }
 
-    public async Task Update(SystemAdmin admin)
+    public Task Update(SystemAdmin admin)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        var idx = all.FindIndex(x => x.Id == admin.Id.Value && x.Type == ContactType.SystemAdmin);
+        var idx = _stores.Contacts.FindIndex(x => x.Id == admin.Id.Value && x.Type == ContactType.SystemAdmin);
         if (idx < 0)
             throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} not found.");
-        all[idx] = ToDto(admin);
-        await _store.SaveAllAsync(all);
+        _stores.Contacts[idx] = ToDto(admin);
+        return Task.CompletedTask;
     }
 
     private static SystemAdmin ToDomain(ContactDto dto) =>

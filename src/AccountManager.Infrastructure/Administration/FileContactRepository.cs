@@ -5,35 +5,31 @@ namespace AccountManager.Infrastructure.Administration;
 
 public class FileContactRepository : IContactRepository
 {
-    private readonly JsonFileStore<ContactDto> _store;
+    private readonly JsonFileStores _stores;
 
-    public FileContactRepository(FileRepositoryOptions options)
-        => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
+    public FileContactRepository(JsonFileStores stores) => _stores = stores;
 
-    public async Task<Contact?> GetById(ContactId id)
+    public Task<Contact?> GetById(ContactId id)
     {
-        var all = await _store.LoadAllAsync();
-        var dto = all.FirstOrDefault(x => x.Id == id.Value);
-        return dto is null ? null : ToDomain(dto);
+        var dto = _stores.Contacts.FirstOrDefault(x => x.Id == id.Value);
+        return Task.FromResult(dto is null ? null : ToDomain(dto));
     }
 
-    public async Task Add(Contact contact)
+    public Task Add(Contact contact)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        if (all.Any(x => x.Id == contact.Id.Value))
+        if (_stores.Contacts.Any(x => x.Id == contact.Id.Value))
             throw new InvalidOperationException($"Contact {contact.Id.Value} already exists.");
-        all.Add(ToDto(contact));
-        await _store.SaveAllAsync(all);
+        _stores.Contacts.Add(ToDto(contact));
+        return Task.CompletedTask;
     }
 
-    public async Task Update(Contact contact)
+    public Task Update(Contact contact)
     {
-        var all = (await _store.LoadAllAsync()).ToList();
-        var idx = all.FindIndex(x => x.Id == contact.Id.Value);
+        var idx = _stores.Contacts.FindIndex(x => x.Id == contact.Id.Value);
         if (idx < 0)
             throw new InvalidOperationException($"Contact {contact.Id.Value} not found.");
-        all[idx] = ToDto(contact);
-        await _store.SaveAllAsync(all);
+        _stores.Contacts[idx] = ToDto(contact);
+        return Task.CompletedTask;
     }
 
     private static Contact ToDomain(ContactDto dto)
