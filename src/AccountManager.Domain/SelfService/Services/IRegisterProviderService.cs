@@ -5,5 +5,5 @@ namespace AccountManager.Domain.SelfService;
 
 public interface IRegisterProviderService
 {
-    Task<Result<Provider, Error>> RegisterAsync(ProviderName name, Npi npi, CancellationToken ct = default);
+    Task<Result<Provider, Error>> RegisterAsync(ProviderName name, Npi npi);
 }

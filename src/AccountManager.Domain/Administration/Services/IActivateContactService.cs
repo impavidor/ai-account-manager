@@ -5,5 +5,5 @@ namespace AccountManager.Domain.Administration;
 
 public interface IActivateContactService
 {
-    Task<UnitResult<Error>> ActivateAsync(ContactId contactId, ContactId actorId, CancellationToken ct = default);
+    Task<UnitResult<Error>> ActivateAsync(ContactId contactId, ContactId actorId);
 }

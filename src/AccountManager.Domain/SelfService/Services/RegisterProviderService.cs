@@ -9,12 +9,12 @@ public class RegisterProviderService : IRegisterProviderService
 
     public RegisterProviderService(IProviderRepository repository) => _repository = repository;
 
-    public async Task<Result<Provider, Error>> RegisterAsync(ProviderName name, Npi npi, CancellationToken ct = default)
+    public async Task<Result<Provider, Error>> RegisterAsync(ProviderName name, Npi npi)
     {
         var result = Provider.Register(name, npi);
         if (result.IsFailure) return result;
 
-        await _repository.Add(result.Value, ct);
+        await _repository.Add(result.Value);
         return result;
     }
 }

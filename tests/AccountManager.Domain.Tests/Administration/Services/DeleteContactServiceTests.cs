@@ -84,10 +84,10 @@ file sealed class InMemoryContactRepository : IContactRepository
 {
     private readonly Dictionary<Guid, Contact> _store = new();
 
-    public Task<Contact?> GetByIdAsync(ContactId id, CancellationToken ct = default) =>
+    public Task<Contact?> GetByIdAsync(ContactId id) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var c) ? c : null);
 
-    public Task Add(Contact contact, CancellationToken ct = default)
+    public Task Add(Contact contact)
     {
         if (_store.ContainsKey(contact.Id.Value))
             throw new InvalidOperationException($"Contact {contact.Id.Value} already exists.");
@@ -95,7 +95,7 @@ file sealed class InMemoryContactRepository : IContactRepository
         return Task.CompletedTask;
     }
 
-    public Task Update(Contact contact, CancellationToken ct = default)
+    public Task Update(Contact contact)
     {
         if (!_store.ContainsKey(contact.Id.Value))
             throw new InvalidOperationException($"Contact {contact.Id.Value} not found.");

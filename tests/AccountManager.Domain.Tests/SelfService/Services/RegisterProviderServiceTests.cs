@@ -58,10 +58,10 @@ file sealed class InMemoryProviderRepository : IProviderRepository
 {
     private readonly Dictionary<Guid, Provider> _store = new();
 
-    public Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken ct = default) =>
+    public Task<Provider?> GetByIdAsync(ProviderId id) =>
         Task.FromResult(_store.TryGetValue(id.Value, out var p) ? p : null);
 
-    public Task Add(Provider provider, CancellationToken ct = default)
+    public Task Add(Provider provider)
     {
         if (_store.ContainsKey(provider.Id.Value))
             throw new InvalidOperationException($"Provider {provider.Id.Value} already exists.");
@@ -69,7 +69,7 @@ file sealed class InMemoryProviderRepository : IProviderRepository
         return Task.CompletedTask;
     }
 
-    public Task Update(Provider provider, CancellationToken ct = default)
+    public Task Update(Provider provider)
     {
         if (!_store.ContainsKey(provider.Id.Value))
             throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");

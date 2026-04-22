@@ -9,12 +9,12 @@ public class ActivateContactService : IActivateContactService
 
     public ActivateContactService(IContactRepository repository) => _repository = repository;
 
-    public async Task<UnitResult<Error>> ActivateAsync(ContactId contactId, ContactId actorId, CancellationToken ct = default)
+    public async Task<UnitResult<Error>> ActivateAsync(ContactId contactId, ContactId actorId)
     {
         if (contactId == actorId)
             return UnitResult.Failure<Error>(new SelfActionForbiddenError());
 
-        var contact = await _repository.GetByIdAsync(contactId, ct);
+        var contact = await _repository.GetByIdAsync(contactId);
         if (contact is null)
             return UnitResult.Failure<Error>(new ContactNotFoundError(contactId));
 
@@ -22,7 +22,7 @@ public class ActivateContactService : IActivateContactService
         if (result.IsFailure)
             return result;
 
-        await _repository.Update(contact, ct);
+        await _repository.Update(contact);
         return UnitResult.Success<Error>();
     }
 }

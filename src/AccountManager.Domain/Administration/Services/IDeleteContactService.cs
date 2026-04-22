@@ -5,5 +5,5 @@ namespace AccountManager.Domain.Administration;
 
 public interface IDeleteContactService
 {
-    Task<UnitResult<Error>> DeleteAsync(ContactId contactId, ContactId actorId, CancellationToken ct = default);
+    Task<UnitResult<Error>> DeleteAsync(ContactId contactId, ContactId actorId);
 }

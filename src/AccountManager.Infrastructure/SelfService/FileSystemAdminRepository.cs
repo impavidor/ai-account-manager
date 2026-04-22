@@ -10,30 +10,30 @@ public class FileSystemAdminRepository : ISystemAdminRepository
     public FileSystemAdminRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<SystemAdminDto>(Path.Combine(options.BasePath, "systemadmins.json"));
 
-    public async Task<SystemAdmin?> GetByIdAsync(SystemAdminId id, CancellationToken ct = default)
+    public async Task<SystemAdmin?> GetByIdAsync(SystemAdminId id)
     {
-        var all = await _store.LoadAllAsync(ct);
+        var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task Add(SystemAdmin admin, CancellationToken ct = default)
+    public async Task Add(SystemAdmin admin)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         if (all.Any(x => x.Id == admin.Id.Value))
             throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} already exists.");
         all.Add(ToDto(admin));
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
-    public async Task Update(SystemAdmin admin, CancellationToken ct = default)
+    public async Task Update(SystemAdmin admin)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         var idx = all.FindIndex(x => x.Id == admin.Id.Value);
         if (idx < 0)
             throw new InvalidOperationException($"SystemAdmin {admin.Id.Value} not found.");
         all[idx] = ToDto(admin);
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
     private static SystemAdmin ToDomain(SystemAdminDto dto) =>

@@ -10,30 +10,30 @@ public class FileProviderRepository : IProviderRepository
     public FileProviderRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<ProviderDto>(Path.Combine(options.BasePath, "providers.json"));
 
-    public async Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken ct = default)
+    public async Task<Provider?> GetByIdAsync(ProviderId id)
     {
-        var all = await _store.LoadAllAsync(ct);
+        var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task Add(Provider provider, CancellationToken ct = default)
+    public async Task Add(Provider provider)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         if (all.Any(x => x.Id == provider.Id.Value))
             throw new InvalidOperationException($"Provider {provider.Id.Value} already exists.");
         all.Add(ToDto(provider));
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
-    public async Task Update(Provider provider, CancellationToken ct = default)
+    public async Task Update(Provider provider)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         var idx = all.FindIndex(x => x.Id == provider.Id.Value);
         if (idx < 0)
             throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");
         all[idx] = ToDto(provider);
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
     private static Provider ToDomain(ProviderDto dto) =>

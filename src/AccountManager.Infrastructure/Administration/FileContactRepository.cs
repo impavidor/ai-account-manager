@@ -10,30 +10,30 @@ public class FileContactRepository : IContactRepository
     public FileContactRepository(FileRepositoryOptions options)
         => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
 
-    public async Task<Contact?> GetByIdAsync(ContactId id, CancellationToken ct = default)
+    public async Task<Contact?> GetByIdAsync(ContactId id)
     {
-        var all = await _store.LoadAllAsync(ct);
+        var all = await _store.LoadAllAsync();
         var dto = all.FirstOrDefault(x => x.Id == id.Value);
         return dto is null ? null : ToDomain(dto);
     }
 
-    public async Task Add(Contact contact, CancellationToken ct = default)
+    public async Task Add(Contact contact)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         if (all.Any(x => x.Id == contact.Id.Value))
             throw new InvalidOperationException($"Contact {contact.Id.Value} already exists.");
         all.Add(ToDto(contact));
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
-    public async Task Update(Contact contact, CancellationToken ct = default)
+    public async Task Update(Contact contact)
     {
-        var all = (await _store.LoadAllAsync(ct)).ToList();
+        var all = (await _store.LoadAllAsync()).ToList();
         var idx = all.FindIndex(x => x.Id == contact.Id.Value);
         if (idx < 0)
             throw new InvalidOperationException($"Contact {contact.Id.Value} not found.");
         all[idx] = ToDto(contact);
-        await _store.SaveAllAsync(all, ct);
+        await _store.SaveAllAsync(all);
     }
 
     private static Contact ToDomain(ContactDto dto)
