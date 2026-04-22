@@ -27,7 +27,7 @@ public class FileSystemAdminRepository : ISystemAdminRepository
     }
 
     private static SystemAdmin ToDomain(SystemAdminDto dto) =>
-        new(dto.Id, new ProviderName(dto.FirstName, dto.LastName), dto.Status);
+        new(new SystemAdminId(dto.Id), new ProviderName(dto.FirstName, dto.LastName), dto.Status);
 
     private static SystemAdminDto ToDto(SystemAdmin a) => new()
     {

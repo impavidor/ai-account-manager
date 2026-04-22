@@ -10,21 +10,14 @@ public class ProviderAdmin : AggregateRoot<ProviderAdminId>
     public ProviderName Name { get; private set; }
     public ContactStatus Status { get; }
 
-    internal ProviderAdmin(Guid id, ProviderName name, ContactStatus status)
-        : base(new ProviderAdminId(id))
+    internal ProviderAdmin(ProviderAdminId id, ProviderName name, ContactStatus status) : base(id)
     {
         Name = name;
         Status = status;
     }
 
-    private ProviderAdmin(ProviderAdminId id, ProviderName name) : base(id)
-    {
-        Name = name;
-        Status = ContactStatus.Pending;
-    }
-
     public static Result<ProviderAdmin, Error> Register(ProviderName name) =>
-        Result.Success<ProviderAdmin, Error>(new ProviderAdmin(new ProviderAdminId(Guid.NewGuid()), name));
+        Result.Success<ProviderAdmin, Error>(new ProviderAdmin(new ProviderAdminId(Guid.NewGuid()), name, ContactStatus.Pending));
 
     public void ChangeName(ProviderName name) => Name = name;
 }

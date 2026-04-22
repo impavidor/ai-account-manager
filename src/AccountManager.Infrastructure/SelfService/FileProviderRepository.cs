@@ -27,7 +27,7 @@ public class FileProviderRepository : IProviderRepository
     }
 
     private static Provider ToDomain(ProviderDto dto) =>
-        new(dto.Id, new ProviderName(dto.FirstName, dto.LastName), new Npi(dto.Npi), dto.Status);
+        new(new ProviderId(dto.Id), new ProviderName(dto.FirstName, dto.LastName), new Npi(dto.Npi), dto.Status);
 
     private static ProviderDto ToDto(Provider p) => new()
     {

@@ -11,15 +11,7 @@ public class Contact : AggregateRoot<ContactId>
     public ContactStatus Status { get; private set; }
     public ContactName Name { get; }
 
-    internal Contact(Guid id, ContactType type, ContactStatus status, ContactName name)
-        : base(new ContactId(id))
-    {
-        Type = type;
-        Status = status;
-        Name = name;
-    }
-
-    private Contact(ContactId id, ContactType type, ContactStatus status, ContactName name) : base(id)
+    internal Contact(ContactId id, ContactType type, ContactStatus status, ContactName name) : base(id)
     {
         Type = type;
         Status = status;

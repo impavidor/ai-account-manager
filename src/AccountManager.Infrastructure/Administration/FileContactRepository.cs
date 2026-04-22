@@ -31,7 +31,7 @@ public class FileContactRepository : IContactRepository
         ContactName name = dto.Type == ContactType.Organization
             ? new OrganizationName(dto.OrgName!)
             : new FullName(dto.FirstName!, dto.LastName!);
-        return new Contact(dto.Id, dto.Type, dto.Status, name);
+        return new Contact(new ContactId(dto.Id), dto.Type, dto.Status, name);
     }
 
     private static ContactDto ToDto(Contact c) => new()

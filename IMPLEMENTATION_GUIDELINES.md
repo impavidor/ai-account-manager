@@ -15,49 +15,74 @@ If a test project needs access to an internal entity, use `[assembly: InternalsV
 
 ---
 
-## Aggregate Constructor Convention
+## Trusted vs Untrusted Sources
 
-**Aggregate constructors are always `private`.**
+Domain objects distinguish between **trusted** and **untrusted** callers:
 
-Creation is always mediated by a static factory method (see below). Infrastructure projects that need to reconstitute aggregates from storage access the private constructor directly via `InternalsVisibleTo` — a deliberate concession to the data layer. The factory enforces domain invariants at creation time; the infrastructure layer is trusted to reconstruct valid state from a trusted data store.
+| Source | Examples |
+| ------ | -------- |
+| **Trusted** | The domain object itself, static factory methods within the same class, repositories reconstituting from DB, other code within the domain assembly |
+| **Untrusted** | Application services, API controllers, external integrations — anything outside the domain assembly |
+
+The trust boundary is the **domain assembly**. The C# `internal` keyword enforces it: trusted callers in the same assembly get direct access; trusted callers in a different assembly (e.g. infrastructure) are explicitly granted access via `InternalsVisibleTo`.
+
+Trusted callers can create domain objects directly without going through validation — data originating from DB or from within the domain is already known-good. Untrusted callers must go through a static factory method that validates before constructing.
+
+`InternalsVisibleTo` declarations granting infrastructure access are placed in `AccountManager.Domain`:
 
 ```csharp
-// Correct
-public class Provider : AggregateRoot<ProviderId>
-{
-    private Provider(ProviderId id, ProviderName name, Npi npi) : base(id) { ... }
-
-    public static Result<Provider, Error> Register(ProviderName name, Npi npi) => ...
-}
-
-// Wrong — public constructor bypasses domain invariants
-public class Provider : AggregateRoot<ProviderId>
-{
-    public Provider(ProviderId id, ProviderName name, Npi npi) { ... }
-}
+[assembly: InternalsVisibleTo("AccountManager.Infrastructure")]
 ```
 
-**`InternalsVisibleTo` declarations** for infrastructure access are placed in `AccountManager.Domain`:
+---
+
+## Aggregate Constructor Convention
+
+**Every aggregate has exactly one `internal` constructor.**
+
+The constructor is the single trusted entry point for assembling an aggregate. It must be **pure assignment only** — no validation, no transformation logic. It accepts already-typed arguments: strongly-typed IDs, value objects, enums. It never accepts raw primitives (e.g. `Guid`, `string`) and never constructs value objects internally. Callers are responsible for preparing the correct typed values before calling it.
 
 ```csharp
-[assembly: InternalsVisibleTo("AccountManager.Infrastructure.Write")]
+// Correct — internal, pure assignment, fully-typed arguments
+public class Provider : AggregateRoot<ProviderId>
+{
+    internal Provider(ProviderId id, ProviderName name, Npi npi, ContactStatus status) : base(id)
+    {
+        Name = name;
+        Npi = npi;
+        Status = status;
+    }
+}
+
+// Wrong — public constructor bypasses the trust boundary
+public Provider(ProviderId id, ProviderName name, Npi npi, ContactStatus status) { ... }
+
+// Wrong — transformation logic inside the constructor
+internal Provider(Guid id, ProviderName name, Npi npi, ContactStatus status)
+    : base(new ProviderId(id)) { ... }
+
+// Wrong — two constructors (one for DB, one for factory) — redundant
+private Provider(ProviderId id, ProviderName name, Npi npi) : base(id) { ... }
+internal Provider(Guid id, ProviderName name, Npi npi, ContactStatus status) : base(new ProviderId(id)) { ... }
 ```
 
 ---
 
 ## Aggregate Factory Method Convention
 
-Every aggregate exposes one or more static factory methods as its sole public creation path. Factories:
+Static factory methods are the **untrusted entry point** for aggregate creation. Every aggregate exposes one or more. Factories:
 
 1. **Always return `Result<TAggregate, Error>`** — even when no validation is currently required. This is a forward-compatibility contract: future guard conditions can be added without changing call-site signatures.
 2. **Use domain-meaningful names** — prefer names that reflect the domain operation rather than a generic `Create`. Examples: `Register`, `Open`, `Issue`.
 3. **Generate the aggregate ID internally** — callers never supply an ID to a factory. ID generation is the factory's responsibility.
-4. **Set the initial lifecycle state** — the factory fixes the starting `ContactStatus` (always `Pending` for v1 aggregates).
+4. **Set the initial lifecycle state explicitly** — the factory passes the starting `ContactStatus` (always `Pending` for v1 aggregates) as an explicit argument to the internal constructor. Initial state is never hardcoded inside a private constructor.
+5. **Own all transformation** — the factory constructs typed IDs and value objects from whatever inputs it receives before calling the internal constructor. The constructor receives only already-typed values.
 
 ```csharp
-// Correct — domain-meaningful name, returns Result, generates ID
+// Correct — domain-meaningful name, returns Result, generates ID, sets initial state explicitly,
+// constructs typed ID before calling internal constructor
 public static Result<Provider, Error> Register(ProviderName name, Npi npi) =>
-    Result.Success<Provider, Error>(new Provider(new ProviderId(Guid.NewGuid()), name, npi));
+    Result.Success<Provider, Error>(new Provider(new ProviderId(Guid.NewGuid()), name, npi, ContactStatus.Pending));
 
 // Wrong — generic name
 public static Result<Provider, Error> Create(ProviderName name, Npi npi) => ...
@@ -73,14 +98,14 @@ public static Result<Provider, Error> Register(ProviderId id, ProviderName name,
 
 ## Value Object Convention
 
-Value objects are `record` types with a private constructor and a static `Create` factory returning `Result<TValueObject, Error>`. Validation lives entirely in the factory.
+Value objects are `record` types with an `internal` constructor and a static `Create` factory returning `Result<TValueObject, Error>`. The same trusted/untrusted split applies: the `internal` constructor is pure assignment for trusted callers; `Create` validates raw input for untrusted callers.
 
 ```csharp
 public record Npi
 {
     public string Value { get; }
-    private Npi(string value) => Value = value;
-    public static Result<Npi, Error> Create(string value) => ...
+    internal Npi(string value) => Value = value;   // trusted — pure assignment
+    public static Result<Npi, Error> Create(string value) => ...   // untrusted — validates, then calls internal
 }
 ```
 

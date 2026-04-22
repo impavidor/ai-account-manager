@@ -27,7 +27,7 @@ public class FileProviderAdminRepository : IProviderAdminRepository
     }
 
     private static ProviderAdmin ToDomain(ProviderAdminDto dto) =>
-        new(dto.Id, new ProviderName(dto.FirstName, dto.LastName), dto.Status);
+        new(new ProviderAdminId(dto.Id), new ProviderName(dto.FirstName, dto.LastName), dto.Status);
 
     private static ProviderAdminDto ToDto(ProviderAdmin a) => new()
     {
