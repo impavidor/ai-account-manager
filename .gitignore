@@ -63,8 +63,6 @@ OpenCover/
 .DS_Store
 Thumbs.db
 
-# Specific project build artifacts
-src/AccountManager.Common/bin/
-src/AccountManager.Common/obj/
-src/AccountManager.Infrastructure/bin/
-src/AccountManager.Infrastructure/obj/
+# Claude Code local state
+.claude/shelved/
+.claude/skills/
