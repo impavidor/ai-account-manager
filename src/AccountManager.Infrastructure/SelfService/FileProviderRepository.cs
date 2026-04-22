@@ -1,3 +1,4 @@
+using AccountManager.Domain.Administration;
 using AccountManager.Domain.SelfService;
 using AccountManager.Infrastructure.Dtos;
 
@@ -5,15 +6,15 @@ namespace AccountManager.Infrastructure.SelfService;
 
 public class FileProviderRepository : IProviderRepository
 {
-    private readonly JsonFileStore<ProviderDto> _store;
+    private readonly JsonFileStore<ContactDto> _store;
 
     public FileProviderRepository(FileRepositoryOptions options)
-        => _store = new JsonFileStore<ProviderDto>(Path.Combine(options.BasePath, "providers.json"));
+        => _store = new JsonFileStore<ContactDto>(Path.Combine(options.BasePath, "contacts.json"));
 
     public async Task<Provider?> GetById(ProviderId id)
     {
         var all = await _store.LoadAllAsync();
-        var dto = all.FirstOrDefault(x => x.Id == id.Value);
+        var dto = all.FirstOrDefault(x => x.Id == id.Value && x.Type == ContactType.Provider);
         return dto is null ? null : ToDomain(dto);
     }
 
@@ -29,22 +30,23 @@ public class FileProviderRepository : IProviderRepository
     public async Task Update(Provider provider)
     {
         var all = (await _store.LoadAllAsync()).ToList();
-        var idx = all.FindIndex(x => x.Id == provider.Id.Value);
+        var idx = all.FindIndex(x => x.Id == provider.Id.Value && x.Type == ContactType.Provider);
         if (idx < 0)
             throw new InvalidOperationException($"Provider {provider.Id.Value} not found.");
         all[idx] = ToDto(provider);
         await _store.SaveAllAsync(all);
     }
 
-    private static Provider ToDomain(ProviderDto dto) =>
-        new(new ProviderId(dto.Id), new ProviderName(dto.FirstName, dto.LastName), new Npi(dto.Npi), dto.Status);
+    private static Provider ToDomain(ContactDto dto) =>
+        new(new ProviderId(dto.Id), new ProviderName(dto.FirstName!, dto.LastName!), new Npi(dto.Npi!), dto.Status);
 
-    private static ProviderDto ToDto(Provider p) => new()
+    private static ContactDto ToDto(Provider p) => new()
     {
         Id = p.Id.Value,
+        Type = ContactType.Provider,
+        Status = p.Status,
         FirstName = p.Name.FirstName,
         LastName = p.Name.LastName,
-        Npi = p.Npi.Value,
-        Status = p.Status
+        Npi = p.Npi.Value
     };
 }

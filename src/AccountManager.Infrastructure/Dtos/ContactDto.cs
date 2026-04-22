@@ -11,4 +11,5 @@ public class ContactDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? OrgName { get; set; }
+    public string? Npi { get; set; }
 }
