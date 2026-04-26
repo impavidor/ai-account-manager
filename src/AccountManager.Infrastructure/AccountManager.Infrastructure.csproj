@@ -10,4 +10,8 @@
     <ProjectReference Include="..\AccountManager.Domain\AccountManager.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
+  </ItemGroup>
+
 </Project>

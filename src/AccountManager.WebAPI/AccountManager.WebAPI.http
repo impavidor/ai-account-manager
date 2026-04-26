@@ -1,0 +1,6 @@
+@AccountManager.WebAPI_HostAddress = http://localhost:5134
+
+GET {{AccountManager.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
