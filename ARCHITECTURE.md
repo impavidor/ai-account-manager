@@ -173,25 +173,30 @@ AccountManager.sln
 │   │       └── ValueObjects/
 │   │           └── ContactStatus.cs
 │   │
-│   ├── AccountManager.Application/             ← deferred
-│   ├── AccountManager.Infrastructure.Write/    ← deferred
-│   ├── AccountManager.Infrastructure.Read/     ← deferred
-│   └── AccountManager.Presentation/            ← deferred
+│   ├── AccountManager.Application/             ← Commands, queries, handlers, DTOs, projector interfaces, ICurrentActor
+│   ├── AccountManager.Infrastructure/          ← Repositories (write) + projectors (read); split deferred
+│   └── AccountManager.WebAPI/                  ← Controllers, ResultMapper, FakeAuthMiddleware, Program.cs
 │
 └── tests/
     ├── AccountManager.Domain.Tests/
     │   ├── Administration/
     │   ├── SelfService/
     │   └── Shared/
-    └── AccountManager.Application.Tests/       ← deferred
+    └── AccountManager.Application.Tests/       ← Handler tests, ResultMapper tests
 ```
 
-### Project dependencies (in scope for v1 domain work)
+### Project dependencies
 
 ```
-AccountManager.Domain  →  AccountManager.Common
-AccountManager.Domain  →  CSharpFunctionalExtensions (NuGet)
-AccountManager.Common  →  CSharpFunctionalExtensions (NuGet)
+AccountManager.WebAPI           →  AccountManager.Application
+AccountManager.WebAPI           →  AccountManager.Infrastructure
+AccountManager.Application      →  AccountManager.Domain
+AccountManager.Application      →  AccountManager.Common
+AccountManager.Infrastructure   →  AccountManager.Domain
+AccountManager.Infrastructure   →  AccountManager.Common
+AccountManager.Domain           →  AccountManager.Common
+AccountManager.Domain           →  CSharpFunctionalExtensions (NuGet)
+AccountManager.Common           →  CSharpFunctionalExtensions (NuGet)
 ```
 
 ---
@@ -375,9 +380,80 @@ All domain services have a corresponding interface, prefixed with `I`, defined i
 
 ---
 
-## Open Questions
+## Application Layer
 
-- Transport layer (REST, gRPC, other)
-- Persistence (ORM, raw SQL, document store)
-- Command/Query bus: library vs hand-rolled
-- Application framework (ASP.NET Core, minimal API, other)
+Commands and queries have a `private` constructor and a `static Create(...)` factory that validates raw inputs, constructs value objects, and returns `Result<TCommand, Error>`. Handlers receive already-valid objects.
+
+### Command handlers
+
+| Step | Responsibility |
+|---|---|
+| 1 | Resolve actor via `ICurrentActor` if needed |
+| 2 | Call domain service or aggregate factory |
+| 3 | Call `IUnitOfWork.SaveChanges()` on success |
+| 4 | Return `Result<CommandResult, Error>` |
+
+`CommandResult` is a discriminated union: `Ok()` (→ 204) and `Created(Guid id)` (→ 201).
+
+### Query handlers
+
+| Step | Responsibility |
+|---|---|
+| 1 | Call projector |
+| 2 | Return `Result<TDto, Error>` |
+
+Projector interfaces are defined in `Application` and implemented in `Infrastructure`. Projectors return DTOs only — they never return domain entities.
+
+### ICurrentActor
+
+```
+ContactId ContactId { get; }
+ContactType ContactType { get; }
+```
+
+Injected into handlers that need the acting user's identity. The WebAPI layer provides `HttpContextCurrentActor` backed by `IHttpContextAccessor`.
+
+---
+
+## Presentation (WebAPI) Layer
+
+ASP.NET Core Controllers. Each action follows: build command/query → call handler → `Match(MapSuccess, MapError)`.
+
+### ResultMapper
+
+Injectable service. Centralises all HTTP mapping:
+
+| Outcome | HTTP status |
+|---|---|
+| `CommandResult.Ok` | 204 No Content |
+| `CommandResult.Created(id)` | 201 Created |
+| Query result | 200 OK |
+| `ContactNotFoundError` | 404 Not Found |
+| `InvalidStatusTransitionError` | 409 Conflict |
+| `SelfActionForbiddenError` | 403 Forbidden |
+| `InvalidNpiError`, `InvalidProviderNameError` | 422 Unprocessable Entity |
+| Unknown `Error` | 500 Internal Server Error |
+
+### Authentication
+
+`FakeAuthMiddleware` reads `X-Actor-Id` (Guid) and `X-Actor-Type` (ContactType) headers and builds a `ClaimsPrincipal`. Designed to be replaced with a real JWT bearer handler via a one-line change in `Program.cs` when an identity server is available.
+
+### DI wiring
+
+Explicit extension methods per layer — no assembly scanning:
+
+- `AddApplicationServices()` — handlers, `ICurrentActor`
+- `AddInfrastructureServices(basePath)` — repositories, projectors, `JsonFileStores`, `IUnitOfWork`
+- `AddWebApiServices()` — `ResultMapper`
+
+---
+
+## Resolved Architecture Decisions
+
+| Question | Decision |
+|---|---|
+| Transport layer | REST (ASP.NET Core) |
+| Application framework | ASP.NET Core Web API with Controllers (not Minimal APIs) |
+| Command/Query bus | Hand-rolled (no library) |
+| Persistence | File-based JSON via `JsonFileStores` for v1; ORM/SQL deferred |
+| Infrastructure split | `Infrastructure.Write` / `Infrastructure.Read` split deferred until a real database is introduced; single `AccountManager.Infrastructure` project for v1 |
