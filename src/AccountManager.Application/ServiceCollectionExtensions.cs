@@ -1,5 +1,4 @@
 using AccountManager.Domain.Administration;
-using AccountManager.Domain.SelfService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AccountManager.Application;
@@ -10,7 +9,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IActivateContactService, ActivateContactService>();
         services.AddScoped<IDeleteContactService, DeleteContactService>();
-        services.AddScoped<IRegisterProviderService, RegisterProviderService>();
         return services;
     }
 }
