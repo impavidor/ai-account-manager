@@ -1,7 +1,6 @@
 using AccountManager.Application;
 using AccountManager.Application.SelfService;
 using AccountManager.Common.Errors;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.SelfService;
 using CSharpFunctionalExtensions;
 using FluentAssertions;
@@ -14,7 +13,6 @@ public class RegisterHandlerTests
     private IProviderRepository _providerRepo = null!;
     private IProviderAdminRepository _providerAdminRepo = null!;
     private ISystemAdminRepository _systemAdminRepo = null!;
-    private IUnitOfWork _uow = null!;
 
     [SetUp]
     public void SetUp()
@@ -22,7 +20,6 @@ public class RegisterHandlerTests
         _providerRepo = new InMemoryProviderRepository();
         _providerAdminRepo = new InMemoryProviderAdminRepository();
         _systemAdminRepo = new InMemorySystemAdminRepository();
-        _uow = new NullUnitOfWork();
     }
 
     // --- RegisterProvider ---
@@ -30,7 +27,7 @@ public class RegisterHandlerTests
     [Test]
     public async Task RegisterProvider_ValidInputs_ReturnsCreatedAndPersists()
     {
-        var handler = new RegisterProviderHandler(_providerRepo, _uow);
+        var handler = new RegisterProviderHandler(_providerRepo);
         var command = RegisterProviderCommand.Create("Alice", "Smith", "1234567890").Value;
 
         var result = await handler.Handle(command);
@@ -64,7 +61,7 @@ public class RegisterHandlerTests
     [Test]
     public async Task RegisterProviderAdmin_ValidInputs_ReturnsCreatedAndPersists()
     {
-        var handler = new RegisterProviderAdminHandler(_providerAdminRepo, _uow);
+        var handler = new RegisterProviderAdminHandler(_providerAdminRepo);
         var command = RegisterProviderAdminCommand.Create("Bob", "Jones").Value;
 
         var result = await handler.Handle(command);
@@ -89,7 +86,7 @@ public class RegisterHandlerTests
     [Test]
     public async Task RegisterSystemAdmin_ValidInputs_ReturnsCreatedAndPersists()
     {
-        var handler = new RegisterSystemAdminHandler(_systemAdminRepo, _uow);
+        var handler = new RegisterSystemAdminHandler(_systemAdminRepo);
         var command = RegisterSystemAdminCommand.Create("Carol", "White").Value;
 
         var result = await handler.Handle(command);
@@ -137,7 +134,3 @@ file sealed class InMemorySystemAdminRepository : ISystemAdminRepository
     public Task Update(SystemAdmin a) { _store[a.Id.Value] = a; return Task.CompletedTask; }
 }
 
-file sealed class NullUnitOfWork : IUnitOfWork
-{
-    public Task SaveChanges() => Task.CompletedTask;
-}

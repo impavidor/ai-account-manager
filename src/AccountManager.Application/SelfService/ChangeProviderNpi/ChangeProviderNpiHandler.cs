@@ -1,21 +1,18 @@
 using AccountManager.Common.Errors;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using AccountManager.Domain.SelfService;
 using CSharpFunctionalExtensions;
 
 namespace AccountManager.Application.SelfService;
 
-public sealed class ChangeProviderNpiHandler
+public sealed class ChangeProviderNpiHandler : ICommandHandler<ChangeProviderNpiCommand>
 {
     private readonly IProviderRepository _repository;
-    private readonly IUnitOfWork _uow;
     private readonly ICurrentActor _actor;
 
-    public ChangeProviderNpiHandler(IProviderRepository repository, IUnitOfWork uow, ICurrentActor actor)
+    public ChangeProviderNpiHandler(IProviderRepository repository, ICurrentActor actor)
     {
         _repository = repository;
-        _uow = uow;
         _actor = actor;
     }
 
@@ -27,7 +24,6 @@ public sealed class ChangeProviderNpiHandler
 
         provider.ChangeNpi(command.Npi);
         await _repository.Update(provider);
-        await _uow.SaveChanges();
-        return CommandResult.Ok();
+        return (CommandResult)CommandResult.Ok();
     }
 }

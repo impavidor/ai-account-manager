@@ -1,30 +1,26 @@
 using AccountManager.Common.Errors;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using AccountManager.Domain.SelfService;
 using CSharpFunctionalExtensions;
 
 namespace AccountManager.Application.SelfService;
 
-public sealed class ChangeNameHandler
+public sealed class ChangeNameHandler : ICommandHandler<ChangeNameCommand>
 {
     private readonly IProviderRepository _providerRepo;
     private readonly IProviderAdminRepository _providerAdminRepo;
     private readonly ISystemAdminRepository _systemAdminRepo;
-    private readonly IUnitOfWork _uow;
     private readonly ICurrentActor _actor;
 
     public ChangeNameHandler(
         IProviderRepository providerRepo,
         IProviderAdminRepository providerAdminRepo,
         ISystemAdminRepository systemAdminRepo,
-        IUnitOfWork uow,
         ICurrentActor actor)
     {
         _providerRepo = providerRepo;
         _providerAdminRepo = providerAdminRepo;
         _systemAdminRepo = systemAdminRepo;
-        _uow = uow;
         _actor = actor;
     }
 
@@ -62,11 +58,9 @@ public sealed class ChangeNameHandler
                 break;
             }
             default:
-                return Result.Failure<CommandResult, Error>(
-                    new ContactNotFoundError(id));
+                return Result.Failure<CommandResult, Error>(new ContactNotFoundError(id));
         }
 
-        await _uow.SaveChanges();
-        return CommandResult.Ok();
+        return (CommandResult)CommandResult.Ok();
     }
 }

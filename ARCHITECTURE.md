@@ -384,14 +384,33 @@ All domain services have a corresponding interface, prefixed with `I`, defined i
 
 Commands and queries have a `private` constructor and a `static Create(...)` factory that validates raw inputs, constructs value objects, and returns `Result<TCommand, Error>`. Handlers receive already-valid objects.
 
+### Handler interfaces
+
+Every handler implements a common interface:
+
+```csharp
+public interface ICommandHandler<TCommand>
+{
+    Task<Result<CommandResult, Error>> Handle(TCommand command);
+}
+
+public interface IQueryHandler<TQuery, TResult>
+{
+    Task<Result<TResult, Error>> Handle(TQuery query);
+}
+```
+
+These interfaces are the DI contract — controllers depend on them, never on concrete handler types.
+
 ### Command handlers
 
 | Step | Responsibility |
 |---|---|
 | 1 | Resolve actor via `ICurrentActor` if needed |
 | 2 | Call domain service or aggregate factory |
-| 3 | Call `IUnitOfWork.SaveChanges()` on success |
-| 4 | Return `Result<CommandResult, Error>` |
+| 3 | Return `Result<CommandResult, Error>` |
+
+`IUnitOfWork.SaveChanges()` is **not called inside handlers**. It is a cross-cutting concern handled by `UnitOfWorkCommandHandlerDecorator<TCommand>` (see DI wiring).
 
 `CommandResult` is a discriminated union: `Ok()` (→ 204) and `Created(Guid id)` (→ 201).
 
@@ -403,6 +422,28 @@ Commands and queries have a `private` constructor and a `static Create(...)` fac
 | 2 | Return `Result<TDto, Error>` |
 
 Projector interfaces are defined in `Application` and implemented in `Infrastructure`. Projectors return DTOs only — they never return domain entities.
+
+### Folder structure
+
+Each command or query and its handler live together in an operation-named subfolder:
+
+```
+Application/
+  Administration/
+    DeleteContact/
+      DeleteContactCommand.cs
+      DeleteContactHandler.cs
+    VerifyContact/
+      VerifyContactCommand.cs
+      VerifyContactHandler.cs
+    ContactDto.cs        ← shared DTOs stay at BC level
+    IContactProjector.cs
+  SelfService/
+    RegisterProvider/
+      RegisterProviderCommand.cs
+      RegisterProviderHandler.cs
+    ...
+```
 
 ### ICurrentActor
 
@@ -442,9 +483,23 @@ Injectable service. Centralises all HTTP mapping:
 
 Explicit extension methods per layer — no assembly scanning:
 
-- `AddApplicationServices()` — handlers, `ICurrentActor`
+- `AddApplicationServices()` — domain services, all command/query handlers (registered manually against their interfaces), `UnitOfWorkCommandHandlerDecorator<>` (via Scrutor `Decorate`)
 - `AddInfrastructureServices(basePath)` — repositories, projectors, `JsonFileStores`, `IUnitOfWork`
-- `AddWebApiServices()` — `ResultMapper`
+- `AddWebApiServices()` — `ResultMapper`, `ICurrentActor`
+
+#### UnitOfWork decorator
+
+`IUnitOfWork.SaveChanges()` is extracted from handlers into a Scrutor decorator that wraps every `ICommandHandler<>` registration:
+
+```csharp
+services.Decorate(typeof(ICommandHandler<>), typeof(UnitOfWorkCommandHandlerDecorator<>));
+```
+
+The decorator calls `SaveChanges()` only on success, keeping it out of every individual handler.
+
+### Constructor injection in controllers
+
+All handler and service dependencies are injected via the controller constructor — never via `[FromServices]` on action methods. Handlers are never instantiated with `new` inside controllers.
 
 ---
 
