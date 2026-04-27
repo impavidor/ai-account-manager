@@ -53,6 +53,15 @@ public class SelfServiceController : ControllerBase
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
+    [HttpGet("/self-service/account")]
+    public async Task<IActionResult> GetAccount(
+        [FromServices] IAccountProjector projector,
+        [FromServices] ICurrentActor actor)
+    {
+        var result = await new GetAccountHandler(projector, actor).Handle(new GetAccountQuery());
+        return result.Match(dto => (IActionResult)Ok(dto), _mapper.MapError);
+    }
+
     [HttpPatch("/self-service/account/npi")]
     public async Task<IActionResult> ChangeNpi(
         [FromBody] ChangeNpiRequest request,

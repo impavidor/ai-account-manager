@@ -1,3 +1,4 @@
+using AccountManager.Application.SelfService;
 using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using AccountManager.Domain.SelfService;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProviderAdminRepository, FileProviderAdminRepository>();
         services.AddScoped<ISystemAdminRepository, FileSystemAdminRepository>();
         services.AddScoped<IContactRepository, FileContactRepository>();
+        services.AddScoped<IAccountProjector, FileAccountProjector>();
         return services;
     }
 }
