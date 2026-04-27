@@ -1,6 +1,5 @@
 using AccountManager.Application;
 using AccountManager.Application.SelfService;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.SelfService;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -17,39 +16,36 @@ public class SelfServiceController : ControllerBase
     [HttpPost("/self-service/providers")]
     public async Task<IActionResult> RegisterProvider(
         [FromBody] RegisterProviderRequest request,
-        [FromServices] IProviderRepository repo,
-        [FromServices] IUnitOfWork uow)
+        [FromServices] IProviderRepository repo)
     {
         var commandResult = RegisterProviderCommand.Create(request.FirstName, request.LastName, request.Npi);
         if (commandResult.IsFailure) return _mapper.MapError(commandResult.Error);
 
-        var result = await new RegisterProviderHandler(repo, uow).Handle(commandResult.Value);
+        var result = await new RegisterProviderHandler(repo).Handle(commandResult.Value);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
     [HttpPost("/self-service/provider-admins")]
     public async Task<IActionResult> RegisterProviderAdmin(
         [FromBody] RegisterNameRequest request,
-        [FromServices] IProviderAdminRepository repo,
-        [FromServices] IUnitOfWork uow)
+        [FromServices] IProviderAdminRepository repo)
     {
         var commandResult = RegisterProviderAdminCommand.Create(request.FirstName, request.LastName);
         if (commandResult.IsFailure) return _mapper.MapError(commandResult.Error);
 
-        var result = await new RegisterProviderAdminHandler(repo, uow).Handle(commandResult.Value);
+        var result = await new RegisterProviderAdminHandler(repo).Handle(commandResult.Value);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
     [HttpPost("/self-service/system-admins")]
     public async Task<IActionResult> RegisterSystemAdmin(
         [FromBody] RegisterNameRequest request,
-        [FromServices] ISystemAdminRepository repo,
-        [FromServices] IUnitOfWork uow)
+        [FromServices] ISystemAdminRepository repo)
     {
         var commandResult = RegisterSystemAdminCommand.Create(request.FirstName, request.LastName);
         if (commandResult.IsFailure) return _mapper.MapError(commandResult.Error);
 
-        var result = await new RegisterSystemAdminHandler(repo, uow).Handle(commandResult.Value);
+        var result = await new RegisterSystemAdminHandler(repo).Handle(commandResult.Value);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
@@ -66,13 +62,12 @@ public class SelfServiceController : ControllerBase
     public async Task<IActionResult> ChangeNpi(
         [FromBody] ChangeNpiRequest request,
         [FromServices] IProviderRepository repo,
-        [FromServices] IUnitOfWork uow,
         [FromServices] ICurrentActor actor)
     {
         var commandResult = ChangeProviderNpiCommand.Create(request.Npi);
         if (commandResult.IsFailure) return _mapper.MapError(commandResult.Error);
 
-        var result = await new ChangeProviderNpiHandler(repo, uow, actor).Handle(commandResult.Value);
+        var result = await new ChangeProviderNpiHandler(repo, actor).Handle(commandResult.Value);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
@@ -82,13 +77,12 @@ public class SelfServiceController : ControllerBase
         [FromServices] IProviderRepository providerRepo,
         [FromServices] IProviderAdminRepository providerAdminRepo,
         [FromServices] ISystemAdminRepository systemAdminRepo,
-        [FromServices] IUnitOfWork uow,
         [FromServices] ICurrentActor actor)
     {
         var commandResult = ChangeNameCommand.Create(request.FirstName, request.LastName);
         if (commandResult.IsFailure) return _mapper.MapError(commandResult.Error);
 
-        var result = await new ChangeNameHandler(providerRepo, providerAdminRepo, systemAdminRepo, uow, actor)
+        var result = await new ChangeNameHandler(providerRepo, providerAdminRepo, systemAdminRepo, actor)
             .Handle(commandResult.Value);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
