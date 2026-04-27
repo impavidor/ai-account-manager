@@ -37,4 +37,22 @@ public class AdministrationController : ControllerBase
         var result = await new DeleteContactHandler(service, uow, actor).Handle(command);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
+
+    [HttpGet("/administration/contacts/{id}")]
+    public async Task<IActionResult> GetContact(
+        Guid id,
+        [FromServices] IContactProjector projector)
+    {
+        var query = GetContactQuery.Create(id).Value;
+        var result = await new GetContactHandler(projector).Handle(query);
+        return result.Match(dto => (IActionResult)Ok(dto), _mapper.MapError);
+    }
+
+    [HttpGet("/administration/contacts")]
+    public async Task<IActionResult> ListContacts(
+        [FromServices] IContactProjector projector)
+    {
+        var result = await new ListContactsHandler(projector).Handle(new ListContactsQuery());
+        return result.Match(list => (IActionResult)Ok(list), _mapper.MapError);
+    }
 }
