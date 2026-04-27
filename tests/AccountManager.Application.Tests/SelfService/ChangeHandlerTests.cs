@@ -1,7 +1,6 @@
 using AccountManager.Application;
 using AccountManager.Application.SelfService;
 using AccountManager.Common.Errors;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using AccountManager.Domain.SelfService;
 using AccountManager.Domain.Shared;
@@ -16,7 +15,6 @@ public class ChangeHandlerTests
     private IProviderRepository _providerRepo = null!;
     private IProviderAdminRepository _providerAdminRepo = null!;
     private ISystemAdminRepository _systemAdminRepo = null!;
-    private IUnitOfWork _uow = null!;
 
     [SetUp]
     public void SetUp()
@@ -24,7 +22,6 @@ public class ChangeHandlerTests
         _providerRepo = new InMemoryProviderRepository();
         _providerAdminRepo = new InMemoryProviderAdminRepository();
         _systemAdminRepo = new InMemorySystemAdminRepository();
-        _uow = new NullUnitOfWork();
     }
 
     // --- ChangeProviderNpi ---
@@ -37,7 +34,7 @@ public class ChangeHandlerTests
             Npi.Create("1234567890").Value).Value;
         await _providerRepo.Add(provider);
         var actor = new FakeCurrentActor(provider.Id.Value, ContactType.Provider);
-        var handler = new ChangeProviderNpiHandler(_providerRepo, _uow, actor);
+        var handler = new ChangeProviderNpiHandler(_providerRepo, actor);
         var command = ChangeProviderNpiCommand.Create("0987654321").Value;
 
         var result = await handler.Handle(command);
@@ -60,7 +57,7 @@ public class ChangeHandlerTests
     public async Task ChangeProviderNpi_ProviderNotFound_ReturnsError()
     {
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.Provider);
-        var handler = new ChangeProviderNpiHandler(_providerRepo, _uow, actor);
+        var handler = new ChangeProviderNpiHandler(_providerRepo, actor);
         var command = ChangeProviderNpiCommand.Create("1234567890").Value;
 
         var result = await handler.Handle(command);
@@ -79,7 +76,7 @@ public class ChangeHandlerTests
             Npi.Create("1234567890").Value).Value;
         await _providerRepo.Add(provider);
         var actor = new FakeCurrentActor(provider.Id.Value, ContactType.Provider);
-        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, _uow, actor);
+        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, actor);
         var command = ChangeNameCommand.Create("Alice", "Updated").Value;
 
         var result = await handler.Handle(command);
@@ -95,7 +92,7 @@ public class ChangeHandlerTests
         var admin = ProviderAdmin.Register(ProviderName.Create("Bob", "Jones").Value).Value;
         await _providerAdminRepo.Add(admin);
         var actor = new FakeCurrentActor(admin.Id.Value, ContactType.ProviderAdmin);
-        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, _uow, actor);
+        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, actor);
         var command = ChangeNameCommand.Create("Bob", "Updated").Value;
 
         var result = await handler.Handle(command);
@@ -110,7 +107,7 @@ public class ChangeHandlerTests
         var admin = SystemAdmin.Register(ProviderName.Create("Carol", "White").Value).Value;
         await _systemAdminRepo.Add(admin);
         var actor = new FakeCurrentActor(admin.Id.Value, ContactType.SystemAdmin);
-        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, _uow, actor);
+        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, actor);
         var command = ChangeNameCommand.Create("Carol", "Updated").Value;
 
         var result = await handler.Handle(command);
@@ -132,7 +129,7 @@ public class ChangeHandlerTests
     public async Task ChangeName_ActorNotFound_ReturnsError()
     {
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.Provider);
-        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, _uow, actor);
+        var handler = new ChangeNameHandler(_providerRepo, _providerAdminRepo, _systemAdminRepo, actor);
         var command = ChangeNameCommand.Create("Alice", "Smith").Value;
 
         var result = await handler.Handle(command);
@@ -180,7 +177,3 @@ file sealed class InMemorySystemAdminRepository : ISystemAdminRepository
     public Task Update(SystemAdmin a) { _store[a.Id.Value] = a; return Task.CompletedTask; }
 }
 
-file sealed class NullUnitOfWork : IUnitOfWork
-{
-    public Task SaveChanges() => Task.CompletedTask;
-}

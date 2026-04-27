@@ -156,6 +156,51 @@ public async Task<UnitResult<Error>> ActivateAsync(ContactId contactId, ContactI
 
 ---
 
+## Result Chaining Convention (CSharpFunctionalExtensions)
+
+Use `Tap`, `Map`, and `Bind` to chain operations instead of imperative if/failure checks. The library exposes these as overloaded methods — there is no `TapAsync`, `MapAsync`, or `BindAsync`; async behaviour is selected by passing a `Func<Task>` or `Func<T, Task>` argument to the same method name.
+
+### In command handlers — replace if/failure checks with Map/Tap
+
+```csharp
+// UnitResult<Error> (from domain service) → Result<CommandResult, Error>
+public Task<Result<CommandResult, Error>> Handle(DeleteContactCommand command) =>
+    _service.DeleteAsync(command.ContactId, _actor.ContactId)
+            .Map(() => (CommandResult)CommandResult.Ok());
+
+// Result<T, Error> (from aggregate factory) → side effect → Result<CommandResult, Error>
+public Task<Result<CommandResult, Error>> Handle(RegisterProviderCommand command) =>
+    Provider.Register(command.Name, command.Npi)
+            .Tap(p => _repository.Add(p))   // Func<T, Task> overload — async side effect
+            .Map(p => (CommandResult)CommandResult.Created(p.Id.Value));
+```
+
+The explicit cast `(CommandResult)CommandResult.Ok()` is required because `OkResult` is a subtype and the compiler cannot widen it implicitly through a lambda.
+
+### In controllers — chain command factory into handler with Bind
+
+```csharp
+var result = await RegisterProviderCommand
+    .Create(request.FirstName, request.LastName, request.Npi)
+    .Bind(_registerProvider.Handle);   // Func<T, Task<Result<K,E>>> overload
+return result.Match(_mapper.Map, _mapper.MapError);
+```
+
+### Overload selection reference
+
+| Starting type | Next step type | Method |
+|---|---|---|
+| `Result<T, E>` | sync side effect | `Tap(Action<T>)` |
+| `Result<T, E>` | async side effect | `Tap(Func<T, Task>)` |
+| `Result<T, E>` | sync transform | `Map(Func<T, K>)` |
+| `Result<T, E>` | async `Result<K,E>` | `Bind(Func<T, Task<Result<K,E>>>)` |
+| `Task<Result<T, E>>` | sync side effect | `Tap(Action<T>)` |
+| `Task<Result<T, E>>` | async side effect | `Tap(Func<T, Task>)` |
+| `Task<Result<T, E>>` | sync transform | `Map(Func<T, K>)` |
+| `Task<UnitResult<E>>` | sync transform to value | `Map(Func<K>)` |
+
+---
+
 ## Testing Convention
 
 - No mocking framework in the domain test project.
