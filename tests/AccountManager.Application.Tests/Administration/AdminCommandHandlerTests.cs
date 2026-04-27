@@ -1,7 +1,6 @@
 using AccountManager.Application;
 using AccountManager.Application.Administration;
 using AccountManager.Common.Errors;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using AccountManager.Domain.Shared;
 using FluentAssertions;
@@ -12,13 +11,11 @@ namespace AccountManager.Application.Tests.Administration;
 public class AdminCommandHandlerTests
 {
     private IContactRepository _repo = null!;
-    private IUnitOfWork _uow = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repo = new InMemoryContactRepository();
-        _uow = new NullUnitOfWork();
     }
 
     // --- VerifyContact ---
@@ -30,7 +27,7 @@ public class AdminCommandHandlerTests
         await _repo.Add(contact);
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.SystemAdmin);
         var service = new ActivateContactService(_repo);
-        var handler = new VerifyContactHandler(service, _uow, actor);
+        var handler = new VerifyContactHandler(service, actor);
         var command = VerifyContactCommand.Create(contact.Id.Value).Value;
 
         var result = await handler.Handle(command);
@@ -45,7 +42,7 @@ public class AdminCommandHandlerTests
     {
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.SystemAdmin);
         var service = new ActivateContactService(_repo);
-        var handler = new VerifyContactHandler(service, _uow, actor);
+        var handler = new VerifyContactHandler(service, actor);
         var command = VerifyContactCommand.Create(Guid.NewGuid()).Value;
 
         var result = await handler.Handle(command);
@@ -61,7 +58,7 @@ public class AdminCommandHandlerTests
         await _repo.Add(contact);
         var actor = new FakeCurrentActor(contact.Id.Value, ContactType.SystemAdmin);
         var service = new ActivateContactService(_repo);
-        var handler = new VerifyContactHandler(service, _uow, actor);
+        var handler = new VerifyContactHandler(service, actor);
         var command = VerifyContactCommand.Create(contact.Id.Value).Value;
 
         var result = await handler.Handle(command);
@@ -78,7 +75,7 @@ public class AdminCommandHandlerTests
         await _repo.Add(contact);
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.SystemAdmin);
         var service = new ActivateContactService(_repo);
-        var handler = new VerifyContactHandler(service, _uow, actor);
+        var handler = new VerifyContactHandler(service, actor);
         var command = VerifyContactCommand.Create(contact.Id.Value).Value;
 
         var result = await handler.Handle(command);
@@ -97,7 +94,7 @@ public class AdminCommandHandlerTests
         await _repo.Add(contact);
         var actor = new FakeCurrentActor(Guid.NewGuid(), ContactType.SystemAdmin);
         var service = new DeleteContactService(_repo);
-        var handler = new DeleteContactHandler(service, _uow, actor);
+        var handler = new DeleteContactHandler(service, actor);
         var command = DeleteContactCommand.Create(contact.Id.Value).Value;
 
         var result = await handler.Handle(command);
@@ -115,7 +112,7 @@ public class AdminCommandHandlerTests
         await _repo.Add(contact);
         var actor = new FakeCurrentActor(contact.Id.Value, ContactType.SystemAdmin);
         var service = new DeleteContactService(_repo);
-        var handler = new DeleteContactHandler(service, _uow, actor);
+        var handler = new DeleteContactHandler(service, actor);
         var command = DeleteContactCommand.Create(contact.Id.Value).Value;
 
         var result = await handler.Handle(command);
@@ -139,9 +136,4 @@ file sealed class InMemoryContactRepository : IContactRepository
         Task.FromResult(_store.TryGetValue(id.Value, out var c) ? c : null);
     public Task Add(Contact c) { _store[c.Id.Value] = c; return Task.CompletedTask; }
     public Task Update(Contact c) { _store[c.Id.Value] = c; return Task.CompletedTask; }
-}
-
-file sealed class NullUnitOfWork : IUnitOfWork
-{
-    public Task SaveChanges() => Task.CompletedTask;
 }

@@ -28,7 +28,9 @@
       "Bash(git rm *)",
       "Bash(xargs ls *)",
       "Bash(git worktree *)",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(xargs -0 wc -l)",
+      "Bash(git checkout *)"
     ]
   }
 }

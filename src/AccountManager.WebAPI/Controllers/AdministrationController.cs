@@ -1,6 +1,5 @@
 using AccountManager.Application;
 using AccountManager.Application.Administration;
-using AccountManager.Common.Persistence;
 using AccountManager.Domain.Administration;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +17,10 @@ public class AdministrationController : ControllerBase
     public async Task<IActionResult> VerifyContact(
         Guid id,
         [FromServices] IActivateContactService service,
-        [FromServices] IUnitOfWork uow,
         [FromServices] ICurrentActor actor)
     {
         var command = VerifyContactCommand.Create(id).Value;
-        var result = await new VerifyContactHandler(service, uow, actor).Handle(command);
+        var result = await new VerifyContactHandler(service, actor).Handle(command);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
@@ -30,11 +28,10 @@ public class AdministrationController : ControllerBase
     public async Task<IActionResult> DeleteContact(
         Guid id,
         [FromServices] IDeleteContactService service,
-        [FromServices] IUnitOfWork uow,
         [FromServices] ICurrentActor actor)
     {
         var command = DeleteContactCommand.Create(id).Value;
-        var result = await new DeleteContactHandler(service, uow, actor).Handle(command);
+        var result = await new DeleteContactHandler(service, actor).Handle(command);
         return result.Match(_mapper.Map, _mapper.MapError);
     }
 
