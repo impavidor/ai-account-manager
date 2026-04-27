@@ -31,7 +31,13 @@
       "Bash(git branch *)",
       "Bash(xargs -0 wc -l)",
       "Bash(git checkout *)",
-      "Bash(dotnet restore *)"
+      "Bash(dotnet restore *)",
+      "Bash(gh pr *)",
+      "Read(//c/Users/impav/.claude/**)",
+      "Bash(find /usr -name \"*prd*\")",
+      "Bash(where claude *)",
+      "Bash(grep \"\\\\.md$\")",
+      "mcp__github__issue_write"
     ]
   }
 }
