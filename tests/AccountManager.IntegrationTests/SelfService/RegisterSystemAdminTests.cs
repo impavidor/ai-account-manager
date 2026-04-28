@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace AccountManager.IntegrationTests.SelfService;
 
 [TestFixture]
-public class RegisterProviderTests : IntegrationTestBase
+public class RegisterSystemAdminTests : IntegrationTestBase
 {
     private Guid _actorId;
 
@@ -18,11 +18,11 @@ public class RegisterProviderTests : IntegrationTestBase
     [Test]
     public async Task HappyPath_ValidBody_Returns201AndContactAppearsInJsonFile()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/providers")
+        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/system-admins")
         {
-            Content = JsonContent.Create(new { FirstName = "John", LastName = "Doe", Npi = "1234567890" })
+            Content = JsonContent.Create(new { FirstName = "Carol", LastName = "White" })
         };
-        request.WithActor(_actorId, "Provider");
+        request.WithActor(_actorId, "SystemAdmin");
 
         var response = await Client.SendAsync(request);
 
@@ -36,20 +36,19 @@ public class RegisterProviderTests : IntegrationTestBase
         var contacts = dataStore.ReadContacts();
         contacts.Should().Contain(c =>
             c.Id == body.Id &&
-            c.Type == DataStore.ContactTypeProvider &&
-            c.FirstName == "John" &&
-            c.LastName == "Doe" &&
-            c.Npi == "1234567890");
+            c.Type == DataStore.ContactTypeSystemAdmin &&
+            c.FirstName == "Carol" &&
+            c.LastName == "White");
     }
 
     [Test]
-    public async Task DomainError_InvalidNpi_Returns422()
+    public async Task DomainError_InvalidName_Returns422()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/providers")
+        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/system-admins")
         {
-            Content = JsonContent.Create(new { FirstName = "John", LastName = "Doe", Npi = "INVALID" })
+            Content = JsonContent.Create(new { FirstName = "Carol", LastName = "" })
         };
-        request.WithActor(_actorId, "Provider");
+        request.WithActor(_actorId, "SystemAdmin");
 
         var response = await Client.SendAsync(request);
 
@@ -59,8 +58,8 @@ public class RegisterProviderTests : IntegrationTestBase
     [Test]
     public async Task ApiError_MissingBody_Returns415()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/providers");
-        request.WithActor(_actorId, "Provider");
+        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/system-admins");
+        request.WithActor(_actorId, "SystemAdmin");
 
         var response = await Client.SendAsync(request);
 
@@ -70,9 +69,9 @@ public class RegisterProviderTests : IntegrationTestBase
     [Test]
     public async Task Auth_NoActorHeaders_Returns201BecauseEndpointIsUnprotected()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/providers")
+        var request = new HttpRequestMessage(HttpMethod.Post, "/self-service/system-admins")
         {
-            Content = JsonContent.Create(new { FirstName = "Jane", LastName = "Smith", Npi = "9876543210" })
+            Content = JsonContent.Create(new { FirstName = "Dave", LastName = "Black" })
         };
 
         var response = await Client.SendAsync(request);
