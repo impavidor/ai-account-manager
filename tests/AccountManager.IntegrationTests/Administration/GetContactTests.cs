@@ -47,5 +47,39 @@ public class GetContactTests : IntegrationTestBase
         body.LastName.Should().Be("Smith");
     }
 
+    [Test]
+    public async Task DomainError_UnknownId_Returns404()
+    {
+        var unknownId = Guid.NewGuid();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/administration/contacts/{unknownId}")
+            .WithActor(_actorId, "SystemAdmin");
+
+        var response = await Client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Test]
+    public async Task ApiError_MalformedId_Returns400()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "/administration/contacts/not-a-guid")
+            .WithActor(_actorId, "SystemAdmin");
+
+        var response = await Client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
+    public async Task Auth_NoActorHeaders_Returns200BecauseEndpointIsUnprotected()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/administration/contacts/{_contactId}");
+
+        var response = await Client.SendAsync(request);
+
+        // FakeAuthMiddleware does not enforce authentication; unauthenticated requests reach the handler
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     private record ContactResponse(Guid Id, int Type, int Status, string FirstName, string LastName);
 }
